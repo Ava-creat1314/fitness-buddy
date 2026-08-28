@@ -198,6 +198,8 @@ label{font-size:13px;color:var(--text2);margin-bottom:4px;display:block;}
 .cycle-seg.active{background:var(--accent);}
 .cycle-seg.done{background:rgba(78,201,176,0.5);}
 .cycle-seg.deload{background:var(--warn);}
+.cycle-seg.strength.active{background:#e06c75;}
+.cycle-seg.strength.done{background:rgba(224,108,117,0.4);}
 .cycle-info{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text2);margin-bottom:14px;}
 .cycle-info .ci-label{font-weight:600;color:var(--accent);}
 .cycle-overview-card{background:var(--card);border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid var(--border);}
@@ -334,7 +336,8 @@ label{font-size:13px;color:var(--text2);margin-bottom:4px;display:block;}
 <div class="navbar">
   <div class="logo">健身搭子</div>
   <div class="nav-btns">
-    <button class="nav-btn active" data-page="dashboard" id="navDashboard">训练计划</button>
+    <button class="nav-btn" data-page="dashboard" id="navDashboard">训练计划</button>
+    <button class="nav-btn" data-page="nutrition" id="navNutrition">营养指南</button>
     <button class="nav-btn" data-page="progress" id="navProgress">训练进度</button>
     <button class="nav-btn" data-page="measure" id="navMeasure">身体记录</button>
     <button class="nav-btn" data-page="settings" id="navSettings">设置</button>
@@ -420,6 +423,11 @@ label{font-size:13px;color:var(--text2);margin-bottom:4px;display:block;}
   <div id="measureContent"></div>
 </div>
 
+<!-- ===== 页面5c: 营养指南 ===== -->
+<div id="page-nutrition" class="container hidden">
+  <div id="nutritionContent"></div>
+</div>
+
 <!-- ===== 页面6: 设置 ===== -->
 <div id="page-settings" class="container hidden">
   <div class="card">
@@ -428,6 +436,7 @@ label{font-size:13px;color:var(--text2);margin-bottom:4px;display:block;}
   </div>
   <div class="card">
     <div class="card-title">数据管理</div>
+    <button class="btn btn-secondary" id="clearLogsBtn" style="margin-bottom:10px;width:100%;">清除训练记录</button>
     <button class="btn btn-danger" id="clearDataBtn">清除所有数据</button>
   </div>
 </div>
@@ -1244,11 +1253,13 @@ function shuffleTemplate(template, level) {
 }
 
 // 生成周计划
-function generatePlan(profile) {
+function generatePlan(profile, phaseType) {
+  phaseType = phaseType || 'hypertrophy';
   var level = determineLevel(profile);
   var split = SPLIT_TEMPLATES[profile.daysPerWeek] || SPLIT_TEMPLATES[3];
   var weekDays = ['第1天', '第2天', '第3天', '第4天', '第5天', '第6天', '第7天'];
-  
+  var params = getPhaseParams(phaseType);
+
   // 安排训练日和休息日
   var dayPlan = [];
   var trainingDays = split.days;
@@ -1274,12 +1285,31 @@ function generatePlan(profile) {
       var dayName = trainingDays[templateIndex % trainingDays.length];
       var template = getDayTemplate(dayName, level);
       var shuffled = shuffleTemplate(template, level);
+      // 根据阶段调整训练参数
+      var adaptedExercises = shuffled.map(function(ex) {
+        var exCopy = JSON.parse(JSON.stringify(ex));
+        if (phaseType === 'strength') {
+          // 肌力阶段：主项（order 1-2）转为4-6次，组数+1，休息延长
+          if (ex.order <= 2) {
+            exCopy.reps = '4-6';
+            exCopy.sets = Math.min(ex.sets + 1, 5);
+            exCopy.rest = Math.max(ex.rest, 150); // 至少2.5分钟
+            exCopy.note = ex.note + ' · 肌力';
+          } else {
+            // 辅助项：保持8-12次但休息延长
+            exCopy.rest = Math.max(ex.rest, 120);
+          }
+        } else {
+          // 肌肥大阶段：保持原参数
+        }
+        return exCopy;
+      });
       dayPlan.push({
         dayName: weekDays[i],
         dayIndex: i,
         type: dayName,
         isRest: false,
-        exercises: JSON.parse(JSON.stringify(shuffled))
+        exercises: adaptedExercises
       });
       templateIndex++;
     } else {
@@ -1295,20 +1325,22 @@ function generatePlan(profile) {
   
   return {
     id: 'plan_' + Date.now(),
-    version: '1.0',
+    version: '2.0',
     level: level,
     splitType: split.type,
     daysPerWeek: profile.daysPerWeek,
     createdAt: new Date().toISOString(),
     weekPlan: dayPlan,
     profile: profile,
-    cycleWeek: 1,          // 当前周期第几周 (1-4)
+    cycleWeek: 1,          // 当前阶段第几周 (1-N)
     cycleStart: new Date().toISOString(),  // 周期开始日期
     weekStartDate: new Date().toISOString(), // 当前周开始日期
-    cycleCount: 0,         // 已完成的完整周期数
+    cycleCount: 0,         // 已完成的完整周期化路线轮数
     trackOverride: null,   // 手动选择的路线（null=自动匹配，0/1/2=手动指定）
     completedDays: [],     // 本周已完成的训练日 idx
-    skippedDays: []        // 本周请假的训练日 idx（顺延到下周）
+    skippedDays: [],       // 本周请假的训练日 idx（顺延到下周）
+    phaseIndex: 0,         // 当前在周期化路线中的阶段索引 (0-4)
+    phaseType: phaseType   // 当前阶段类型 hypertrophy/strength
   };
 }
 
@@ -1486,6 +1518,254 @@ function generateNutritionAdvice(trainingData, bodyweight, timeSlot) {
 
 // ===== plan-engine.js 内联结束 =====
 
+// ===== 营养指南 =====
+function getNutritionGuide() {
+  var p = state.profile || {};
+  var bw = p.bodyweight || 55;
+  var h = p.height || 165;
+  var age = p.age || 25;
+  var gender = p.gender || 'female';
+  var goal = p.goal || '增肌';
+  var daysPerWeek = p.daysPerWeek || 3;
+
+  // BMR 基础代谢率（Mifflin-St Jeor 公式）
+  var bmr;
+  if (gender === 'male') {
+    bmr = 10 * bw + 6.25 * h - 5 * age + 5;
+  } else {
+    bmr = 10 * bw + 6.25 * h - 5 * age - 161;
+  }
+  bmr = Math.round(bmr);
+
+  // 活动系数（基于训练频率）
+  var activityFactors = { 2: 1.375, 3: 1.45, 4: 1.5, 5: 1.55 };
+  var activity = activityFactors[daysPerWeek] || 1.45;
+
+  // TDEE 每日总能量消耗
+  var tdee = Math.round(bmr * activity);
+
+  // 目标热量调整
+  var targetCal, goalLabel;
+  if (goal === '增肌') {
+    targetCal = tdee + 250; // 温和盈余
+    goalLabel = '增肌期（温和热量盈余+250kcal）';
+  } else if (goal === '减脂塑形') {
+    targetCal = tdee - 300; // 温和赤字
+    goalLabel = '减脂期（温和热量赤字-300kcal）';
+  } else {
+    targetCal = tdee; // 维持
+    goalLabel = '维持期（热量平衡）';
+  }
+
+  // 三大营养素分配（增肌标准）
+  var proteinPerKg = 1.8; // g/kg 体重
+  if (goal === '减脂塑形') proteinPerKg = 2.0; // 减脂期蛋白略高
+  var fatPercent = 0.25; // 脂肪占25%
+  var proteinGrams = Math.round(bw * proteinPerKg);
+  var proteinCal = proteinGrams * 4;
+  var fatCal = Math.round(targetCal * fatPercent);
+  var fatGrams = Math.round(fatCal / 9);
+  var carbCal = targetCal - proteinCal - fatCal;
+  var carbGrams = Math.round(carbCal / 4);
+
+  // 训练日 vs 休息日
+  var trainingDayCal = targetCal;
+  var restDayCal = goal === '增肌' ? targetCal - 150 : (goal === '减脂塑形' ? targetCal + 50 : targetCal);
+
+  // 训练日碳水增加，休息日碳水减少
+  var trainingCarb = Math.round(carbGrams * 1.15);
+  var restCarb = Math.round(carbGrams * 0.75);
+  var trainingProtein = proteinGrams;
+  var restProtein = proteinGrams;
+  var trainingFat = Math.round(fatGrams * 0.9);
+  var restFat = Math.round(fatGrams * 1.1);
+
+  return {
+    bmr: bmr,
+    tdee: tdee,
+    targetCal: targetCal,
+    goalLabel: goalLabel,
+    proteinGrams: proteinGrams,
+    carbGrams: carbGrams,
+    fatGrams: fatGrams,
+    proteinCal: proteinCal,
+    carbCal: carbCal,
+    fatCal: fatCal,
+    trainingDayCal: trainingDayCal,
+    restDayCal: restDayCal,
+    trainingMacros: { protein: trainingProtein, carb: trainingCarb, fat: trainingFat },
+    restMacros: { protein: restProtein, carb: restCarb, fat: restFat },
+    bodyweight: bw
+  };
+}
+
+function renderNutrition() {
+  if (!state.profile) {
+    document.getElementById('nutritionContent').innerHTML = '<div class="card"><div style="text-align:center;color:var(--text2);padding:40px 0;">请先完成问卷，生成个性化营养方案</div></div>';
+    return;
+  }
+
+  var ng = getNutritionGuide();
+  var html = '';
+
+  // === 1. 每日热量标准 ===
+  html += '<div class="card">';
+  html += '<div class="card-title">每日热量目标</div>';
+  html += '<div style="font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:14px;">';
+  html += '基础代谢率（BMR）：你的身体在完全静息状态下消耗的最低能量。<br>';
+  html += '每日总消耗（TDEE）：BMR × 活动系数，反映你每天实际消耗的热量。<br>';
+  html += '目标热量：根据你的目标在TDEE基础上调整盈余或赤字。';
+  html += '</div>';
+
+  html += '<div class="measure-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px;">';
+  html += '<div class="mg-item"><div class="mg-label">BMR</div><div class="mg-value">' + ng.bmr + '</div><div class="mg-change">kcal/天</div></div>';
+  html += '<div class="mg-item"><div class="mg-label">TDEE</div><div class="mg-value">' + ng.tdee + '</div><div class="mg-change">kcal/天</div></div>';
+  html += '<div class="mg-item"><div class="mg-label">目标热量</div><div class="mg-value">' + ng.targetCal + '</div><div class="mg-change">kcal/天</div></div>';
+  html += '</div>';
+
+  html += '<div style="font-size:13px;color:var(--accent);font-weight:600;">' + ng.goalLabel + '</div>';
+  html += '<div style="font-size:11px;color:var(--text3);margin-top:4px;">公式：Mifflin-St Jeor · 活动系数基于每周' + state.profile.daysPerWeek + '天训练</div>';
+  html += '</div>';
+
+  // === 2. 三大营养素分配 ===
+  html += '<div class="card">';
+  html += '<div class="card-title">三大营养素分配</div>';
+  html += '<div style="font-size:12px;color:var(--text2);margin-bottom:14px;">增肌期核心原则：高蛋白（1.8-2.2g/kg）、中碳水（供能+补糖原）、适量脂肪（激素健康+脂溶性维生素吸收）</div>';
+
+  // 营养素大数字
+  html += '<div class="measure-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px;">';
+  html += '<div class="mg-item"><div class="mg-label">蛋白质</div><div class="mg-value" style="color:var(--accent);">' + ng.proteinGrams + '</div><div class="mg-change">' + ng.proteinCal + 'kcal · ' + Math.round(ng.proteinCal / ng.targetCal * 100) + '%</div></div>';
+  html += '<div class="mg-item"><div class="mg-label">碳水</div><div class="mg-value" style="color:var(--warn);">' + ng.carbGrams + '</div><div class="mg-change">' + ng.carbCal + 'kcal · ' + Math.round(ng.carbCal / ng.targetCal * 100) + '%</div></div>';
+  html += '<div class="mg-item"><div class="mg-label">脂肪</div><div class="mg-value" style="color:var(--text);">' + ng.fatGrams + '</div><div class="mg-change">' + ng.fatCal + 'kcal · ' + Math.round(ng.fatCal / ng.targetCal * 100) + '%</div></div>';
+  html += '</div>';
+
+  // 比例条
+  var pPct = Math.round(ng.proteinCal / ng.targetCal * 100);
+  var cPct = Math.round(ng.carbCal / ng.targetCal * 100);
+  var fPct = 100 - pPct - cPct;
+  html += '<div style="display:flex;height:28px;border-radius:6px;overflow:hidden;margin-bottom:8px;">';
+  html += '<div style="width:' + pPct + '%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:600;">蛋白' + pPct + '%</div>';
+  html += '<div style="width:' + cPct + '%;background:var(--warn);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:600;">碳水' + cPct + '%</div>';
+  html += '<div style="width:' + fPct + '%;background:#9ca3af;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:600;">脂肪' + fPct + '%</div>';
+  html += '</div>';
+  html += '<div style="font-size:11px;color:var(--text3);">蛋白质4kcal/g · 碳水4kcal/g · 脂肪9kcal/g</div>';
+  html += '</div>';
+
+  // === 3. 训练日 vs 休息日 ===
+  html += '<div class="card">';
+  html += '<div class="card-title">训练日 vs 休息日</div>';
+  html += '<div style="font-size:12px;color:var(--text2);margin-bottom:14px;">训练日增加碳水（补充糖原+供能），休息日减少碳水、脂肪略增。蛋白质每天保持一致。</div>';
+
+  html += '<div class="measure-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:0;">';
+  // 训练日
+  html += '<div class="mg-item" style="padding:14px;">';
+  html += '<div class="mg-label">训练日</div>';
+  html += '<div class="mg-value">' + ng.trainingDayCal + '</div>';
+  html += '<div class="mg-change">kcal</div>';
+  html += '<div style="margin-top:8px;font-size:11px;line-height:1.8;text-align:left;">';
+  html += '蛋白 ' + ng.trainingMacros.protein + 'g<br>碳水 ' + ng.trainingMacros.carb + 'g<br>脂肪 ' + ng.trainingMacros.fat + 'g';
+  html += '</div>';
+  html += '</div>';
+  // 休息日
+  html += '<div class="mg-item" style="padding:14px;">';
+  html += '<div class="mg-label">休息日</div>';
+  html += '<div class="mg-value">' + ng.restDayCal + '</div>';
+  html += '<div class="mg-change">kcal</div>';
+  html += '<div style="margin-top:8px;font-size:11px;line-height:1.8;text-align:left;">';
+  html += '蛋白 ' + ng.restMacros.protein + 'g<br>碳水 ' + ng.restMacros.carb + 'g<br>脂肪 ' + ng.restMacros.fat + 'g';
+  html += '</div>';
+  html += '</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // === 4. 一日饮食样板（训练日） ===
+  html += '<div class="card">';
+  html += '<div class="card-title">一日饮食样板（训练日参考）</div>';
+  html += '<div style="font-size:12px;color:var(--text2);margin-bottom:14px;">以下为参考搭配，可根据口味替换同类食物。关键是每餐都有蛋白质+碳水，训练前后加餐。</div>';
+
+  var mealTemplates = [
+    {
+      meal: '早餐', time: '7:00-8:00',
+      items: '鸡蛋2-3个 + 全麦面包2片(70g) + 牛奶1杯(250ml) + 小份水果',
+      macros: '蛋白 ~25g · 碳水 ~55g · 脂肪 ~15g',
+      note: '一夜禁食后补充蛋白质，启动肌肉合成代谢'
+    },
+    {
+      meal: '练前加餐', time: '训练前1小时',
+      items: '香蕉1根(100g) + 酸奶1杯(150g) 或 全麦面包1片(35g) + 花生酱1勺(15g)',
+      macros: '蛋白 ~10g · 碳水 ~30g · 脂肪 ~5g',
+      note: '碳水供能，避免空腹训练力量下降'
+    },
+    {
+      meal: '练后餐', time: '训练后30-60分钟',
+      items: '鸡胸肉1掌大小(100g) + 米饭1碗(150g) + 蔬菜1份 或 蛋白粉1勺(30g) + 香蕉1根(100g)',
+      macros: '蛋白 ~35g · 碳水 ~50g · 脂肪 ~8g',
+      note: '黄金窗口期：蛋白质修复肌纤维，碳水补糖原'
+    },
+    {
+      meal: '晚餐', time: '18:00-19:00',
+      items: '鱼/虾/牛肉100g + 红薯200g/糙米饭1碗(150g) + 绿叶蔬菜 + 坚果1小把(15g)',
+      macros: '蛋白 ~30g · 碳水 ~45g · 脂肪 ~15g',
+      note: '晚餐碳水以粗粮为主，脂肪控制在适量'
+    },
+    {
+      meal: '睡前（可选）', time: '睡前30分钟',
+      items: '希腊酸奶1杯(150g) 或 温牛奶1杯(250ml)',
+      macros: '蛋白 ~10g · 碳水 ~12g · 脂肪 ~5g',
+      note: '酪蛋白缓慢释放，减少夜间肌肉分解'
+    }
+  ];
+
+  mealTemplates.forEach(function(m) {
+    html += '<div class="measure-timeline-item" style="margin-bottom:10px;">';
+    html += '<div class="mt-date">' + m.meal + ' · ' + m.time + '</div>';
+    html += '<div style="font-size:13px;margin:4px 0;">' + m.items + '</div>';
+    html += '<div style="font-size:11px;color:var(--accent);margin-bottom:4px;">' + m.macros + '</div>';
+    html += '<div style="font-size:11px;color:var(--text3);">' + m.note + '</div>';
+    html += '</div>';
+  });
+
+  html += '<div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center;">全天合计 ≈ 蛋白' + ng.trainingMacros.protein + 'g · 碳水' + ng.trainingMacros.carb + 'g · 脂肪' + ng.trainingMacros.fat + 'g · ' + ng.trainingDayCal + 'kcal</div>';
+  html += '</div>';
+
+  // === 5. 食物交换参考 ===
+  html += '<div class="card">';
+  html += '<div class="card-title">食物交换参考</div>';
+  html += '<div style="font-size:12px;color:var(--text2);margin-bottom:14px;">同类食物可以等量替换，保证营养素摄入不变。</div>';
+
+  var exchanges = [
+    { category: '优质蛋白（~20g蛋白/份）', foods: '鸡胸肉80g · 鸡蛋3个 · 蛋白粉1勺(30g) · 鱼肉100g · 虾仁100g · 牛肉80g · 希腊酸奶150g · 豆腐200g' },
+    { category: '复合碳水（~40g碳水/份）', foods: '米饭1碗(150g) · 全麦面包2片 · 燕麦50g · 红薯200g · 紫薯150g · 糙米饭1碗 · 意面60g(干) · 香蕉1根大的' },
+    { category: '健康脂肪（~10g脂肪/份）', foods: '坚果1小把(15g) · 牛油果半个 · 橄榄油1勺 · 花生酱1勺 · 奶酪1片 · 三文鱼50g' },
+    { category: '蔬菜（自由量，几乎不计热量）', foods: '西兰花 · 菠菜 · 小白菜 · 番茄 · 黄瓜 · 菌菇 · 彩椒 · 芦笋' }
+  ];
+
+  exchanges.forEach(function(e) {
+    html += '<div style="margin-bottom:12px;">';
+    html += '<div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px;">' + e.category + '</div>';
+    html += '<div style="font-size:12px;color:var(--text2);line-height:1.8;">' + e.foods + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // === 6. 增肌期饮食要点 ===
+  html += '<div class="card" style="border-left:3px solid var(--accent);">';
+  html += '<div class="card-title">增肌期饮食要点</div>';
+  html += '<div style="font-size:12px;color:var(--text2);line-height:2;">';
+  html += '<div>· 每天吃够蛋白质是第一优先级：' + ng.proteinGrams + 'g目标，分散到4-5餐</div>';
+  html += '<div>· 热量盈余不用太大：+200~300kcal即可，盈余越大脂肪越多</div>';
+  html += '<div>· 训练日多吃碳水（' + ng.trainingMacros.carb + 'g），休息日减到' + ng.restMacros.carb + 'g</div>';
+  html += '<div>· 蛋白质来源多样化：动物蛋白（鸡蛋/肉/鱼/奶）+ 植物蛋白（豆制品）</div>';
+  html += '<div>· 不要怕碳水：增肌期碳水不足会掉力量和肌肉量</div>';
+  html += '<div>· 脂肪太低会影响激素水平（尤其是女性生理周期），每天至少' + ng.fatGrams + 'g</div>';
+  html += '<div>· 生理期热量可以+100-200kcal，多补铁（红肉/菠菜）和镁（坚果/深色蔬菜）</div>';
+  html += '<div>· 每天饮水 = 体重(kg) × 35-40ml ≈ ' + Math.round(ng.bodyweight * 35) + '-' + Math.round(ng.bodyweight * 40) + 'ml</div>';
+  html += '</div>';
+  html += '</div>';
+
+  document.getElementById('nutritionContent').innerHTML = html;
+}
+
 // ===== index.html 主逻辑 =====
 </script>
 <script>
@@ -1557,9 +1837,13 @@ function finishRestTimer() {
   clearInterval(restTimer.intervalId);
   restTimer.intervalId = null;
 
-  // 提示音
+  // 提示音（复用全局 AudioContext，避免浏览器实例限制）
   try {
-    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!_checkAudioCtx) {
+      _checkAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (_checkAudioCtx.state === 'suspended') _checkAudioCtx.resume();
+    var audioCtx = _checkAudioCtx;
     var playBeep = function(freq, delay) {
       var osc = audioCtx.createOscillator();
       var gain = audioCtx.createGain();
@@ -1665,6 +1949,8 @@ function loadState() {
         if (state.plan.trackOverride === undefined) state.plan.trackOverride = null;
         if (!state.plan.skippedDays) state.plan.skippedDays = [];
         if (!state.plan.weekStartDate) state.plan.weekStartDate = state.plan.cycleStart || state.plan.createdAt || new Date().toISOString();
+        if (state.plan.phaseIndex === undefined) state.plan.phaseIndex = 0;
+        if (!state.plan.phaseType) state.plan.phaseType = 'hypertrophy';
       }
     } catch(e) { console.error('Load failed', e); }
   }
@@ -1672,6 +1958,50 @@ function loadState() {
 
 // ===== Toast 提示 =====
 var toastTimer = null;
+// ===== 完成勾选音效 + 鼓励语 =====
+var _checkAudioCtx = null;
+function playCheckSound() {
+  try {
+    if (!_checkAudioCtx) {
+      _checkAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // 浏览器会自动挂起 AudioContext，需要手动 resume
+    if (_checkAudioCtx.state === 'suspended') _checkAudioCtx.resume();
+    var notes = [523.25, 659.25, 783.99]; // C5, E5, G5 上升音阶
+    notes.forEach(function(freq, i) {
+      var osc = _checkAudioCtx.createOscillator();
+      var gain = _checkAudioCtx.createGain();
+      var t = _checkAudioCtx.currentTime + i * 0.08;
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.25, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      osc.connect(gain);
+      gain.connect(_checkAudioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.15);
+    });
+  } catch(e) {}
+  if (navigator.vibrate) navigator.vibrate(80);
+}
+
+var encourageMessages = [
+  '好样的！💪', '再来一组！', '保持节奏！🔥', '你真棒！', '加油！💪',
+  '稳住！', '进步看得见！', '就是这样！', '肌肉在生长！💪', '继续冲！🔥',
+  '完美！', '专注！', '相信自己！', '一分耕耘一分收获！', '保持住！'
+];
+var encourageTimer = null;
+function showEncouragement() {
+  var msg = encourageMessages[Math.floor(Math.random() * encourageMessages.length)];
+  var toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  if (encourageTimer) clearTimeout(encourageTimer);
+  encourageTimer = setTimeout(function() {
+    toast.classList.remove('show');
+  }, 2000);
+}
+
 function showToast(msg) {
   var toast = document.getElementById('toast');
   toast.textContent = msg;
@@ -1684,7 +2014,7 @@ function showToast(msg) {
 
 // ===== 页面切换 =====
 function showPage(pageId) {
-  var pages = ['quiz','dashboard','training','summary','progress','measure','settings','cycle','year'];
+  var pages = ['quiz','dashboard','nutrition','training','summary','progress','measure','settings','cycle','year'];
   pages.forEach(function(p) {
     var el = document.getElementById('page-' + p);
     if (el) el.classList.add('hidden');
@@ -1877,118 +2207,9 @@ function renderQuiz() {
 }
 
 // ===== 周期系统 =====
-function getCycleInfo() {
-  if (!state.plan) return null;
-  var cw = state.plan.cycleWeek || 1;
-  var weekNames = ['第1周', '第2周', '第3周', '第4周（减载）'];
-  var weekFocus = [
-    '基础积累期 · 适应当前重量，注重动作质量',
-    '渐进超负荷 · 主项尝试加重2.5-5kg',
-    '强度冲刺 · 主项冲击新重量，辅助项维持',
-    '减载恢复 · 训练量和强度降低40-50%，让身体恢复'
-  ];
-  var weekDetail = [
-    '本周保持推荐重量不变，专注于动作节奏和控制。如果上一周某动作轻松完成目标次数上限，可加重2.5kg。训练容量保持在基准水平。',
-    '主项（深蹲/卧推/硬拉等）尝试在上一周基础上加重2.5-5kg。辅助项保持不变。如果加重后无法完成目标次数下限，回退到上周重量。',
-    '主项继续冲击新重量。RPE允许到9。辅助项可适当加重2.5kg。本周是周期内训练强度最高的一周，注意充分热身和休息。',
-    '所有动作重量降低到第1周的80%，组数减少1组（最少2组），RPE控制在6-7。目的是消除疲劳、恢复关节，为下个周期做准备。'
-  ];
+// 周期化路线（5阶段共16周，循环执行）
+function getPeriodizationTrack() {
   return {
-    currentWeek: cw,
-    totalWeeks: 4,
-    weekName: weekNames[cw - 1] || weekNames[0],
-    focus: weekFocus[cw - 1] || weekFocus[0],
-    detail: weekDetail[cw - 1] || weekDetail[0],
-    isDeload: cw === 4
-  };
-}
-
-function renderCycleBar() {
-  var info = getCycleInfo();
-  if (!info) return '';
-  var html = '<div class="cycle-bar" style="cursor:pointer;" onclick="renderCycleOverview();showPage(\'cycle\');">';
-  for (var i = 1; i <= 4; i++) {
-    var cls = 'cycle-seg';
-    if (i < info.currentWeek) cls += ' done';
-    if (i === info.currentWeek) cls += ' active';
-    if (i === 4) cls += ' deload';
-    html += '<div class="' + cls + '"></div>';
-  }
-  html += '</div>';
-  html += '<div class="cycle-info" style="cursor:pointer;" onclick="renderCycleOverview();showPage(\'cycle\');">';
-  html += '<span><span class="ci-label">' + info.weekName + '</span> · ' + info.focus + '</span>';
-  html += '<span style="font-size:11px;">' + (info.isDeload ? '减载周' : '第' + info.currentWeek + '/4周') + ' · 点击查看详情 ›</span>';
-  html += '</div>';
-  return html;
-}
-
-function renderCycleOverview() {
-  var info = getCycleInfo();
-  if (!info) { showPage('dashboard'); return; }
-
-  var html = '';
-
-  // 周期总览
-  html += '<div class="card">';
-  html += '<div class="card-title">4周训练周期</div>';
-  html += '<div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:14px;">';
-  html += '每个周期4周：前3周渐进超负荷（逐步加重），第4周减载恢复。完成一个周期后自动进入下一个周期，重量基础线提升。';
-  html += '</div>';
-  html += renderCycleBar();
-  html += '</div>';
-
-  // 各周详情
-  var weekData = [
-    { week: 1, name: '第1周 · 基础积累', focus: '适应重量，打磨动作', detail: '保持推荐重量不变，专注于动作节奏和控制。如果上周某动作轻松完成目标次数上限，可加重2.5kg。' },
-    { week: 2, name: '第2周 · 渐进超负荷', focus: '主项加重2.5-5kg', detail: '主项（深蹲/卧推/硬拉等）尝试在上一周基础上加重2.5-5kg。辅助项保持不变。如果加重后无法完成目标次数下限，回退到上周重量。' },
-    { week: 3, name: '第3周 · 强度冲刺', focus: '冲击新重量，RPE可达9', detail: '主项继续冲击新重量。辅助项可适当加重2.5kg。本周是周期内训练强度最高的一周，注意充分热身和休息。' },
-    { week: 4, name: '第4周 · 减载恢复', focus: '降量40-50%，消除疲劳', detail: '所有动作重量降低到第1周的80%，组数减少1组（最少2组），RPE控制在6-7。目的是消除疲劳、恢复关节，为下个周期做准备。' }
-  ];
-
-  weekData.forEach(function(w) {
-    var isCurrent = w.week === info.currentWeek;
-    var isDeload = w.week === 4;
-    var cls = 'cycle-overview-card';
-    if (isCurrent) cls += ' current';
-    if (isDeload) cls += ' deload';
-
-    html += '<div class="' + cls + '">';
-    html += '<div class="co-week">' + w.name;
-    if (isCurrent) html += ' <span class="co-badge now">本周</span>';
-    if (isDeload) html += ' <span class="co-badge deload">减载</span>';
-    html += '</div>';
-    html += '<div class="co-focus">' + w.focus + '</div>';
-    html += '<div class="co-detail">' + w.detail + '</div>';
-    html += '</div>';
-  });
-
-  // 完成本周的条件说明
-  html += '<div class="card" style="border-left:3px solid var(--accent);">';
-  html += '<div style="font-size:14px;font-weight:600;margin-bottom:8px;">如何进入下一周</div>';
-  html += '<div style="font-size:12px;color:var(--text2);line-height:1.8;">';
-  html += '完成本周所有训练日后，系统自动滚动到下一周并更新重量推荐。<br>';
-  html += '第4周完成后，自动进入新周期第1周，重量基础线以第3周的最高重量为基准。';
-  html += '</div>';
-  html += '</div>';
-
-  document.getElementById('cycleOverviewContent').innerHTML = html;
-}
-
-// ===== NSCA-CPT 肌肥大周期化模型 =====
-function renderYearRoadmap() {
-  var info = getCycleInfo();
-  var cw = info ? info.currentWeek : 1;
-
-  var completedCycles = state.plan ? (state.plan.cycleCount || 0) : 0;
-
-  // 肌肥大训练参数
-  var paramLib = {
-    hypertrophy:{ name: '肌肥大', en: 'Hypertrophy', reps: '8-12', sets: '3-4', intensity: '67-75% 1RM', rest: '60-90s', rpe: '7-8', color: 'hypertrophy' },
-    strength:  { name: '肌力',   en: 'Muscular Strength', reps: '4-6', sets: '3-5', intensity: '80-88% 1RM', rest: '2-3min', rpe: '8-9', color: 'strength' }
-  };
-
-  // 肌肥大周期化路线
-  var track = {
     label: '肌肥大周期化路线',
     sub: '以肌肥大为核心，穿插肌力阶段打破适应平台',
     focusNote: '肌肥大为主轨，每次插入2-3周肌力阶段打破适应，回到肌肥大时能使用更大重量刺激肌肉生长',
@@ -2000,20 +2221,223 @@ function renderYearRoadmap() {
       { type: 'hypertrophy', weeks: 3 }
     ]
   };
+}
 
-  // 计算当前在路线中的位置
+function getPhaseParams(phaseType) {
+  var lib = {
+    hypertrophy: { name: '肌肥大', en: 'Hypertrophy', reps: '8-12', sets: '3-4', intensity: '67-75% 1RM', rest: '60-90s', rpe: '7-8', color: 'hypertrophy', defaultRest: 90, overloadKg: 2.5 },
+    strength:    { name: '肌力',   en: 'Muscular Strength', reps: '4-6', sets: '3-5', intensity: '80-88% 1RM', rest: '2-3min', rpe: '8-9', color: 'strength', defaultRest: 150, overloadKg: 5 }
+  };
+  return lib[phaseType] || lib.hypertrophy;
+}
+
+// 根据当前 plan 计算所处阶段信息
+function getPhaseInfo() {
+  if (!state.plan) return null;
+  var track = getPeriodizationTrack();
+  var phaseIdx = state.plan.phaseIndex || 0;
+  var cw = state.plan.cycleWeek || 1;
+  var cycleCount = state.plan.cycleCount || 0;
+
+  // 计算已过的总周数（用于年度路线图定位）
+  var elapsedWeeks = cycleCount * 16; // 每轮16周
+  for (var i = 0; i < phaseIdx; i++) {
+    elapsedWeeks += track.phases[i].weeks;
+  }
+  elapsedWeeks += (cw - 1);
+
+  var phase = track.phases[phaseIdx] || track.phases[0];
+  var params = getPhaseParams(phase.type);
+  return {
+    phaseIndex: phaseIdx,
+    phaseType: phase.type,
+    phaseWeeks: phase.weeks,
+    currentWeek: cw,
+    totalWeeks: phase.weeks,
+    cycleCount: cycleCount,
+    elapsedWeeks: elapsedWeeks,
+    track: track,
+    params: params,
+    isStrength: phase.type === 'strength',
+    isHypertrophy: phase.type === 'hypertrophy',
+    isDeload: cw === phase.weeks && phase.type === 'hypertrophy' // 肌肥大阶段最后一周为减载
+  };
+}
+
+function getCycleInfo() {
+  var pi = getPhaseInfo();
+  if (!pi) return null;
+  var cw = pi.currentWeek;
+  var weekNames = [];
+  for (var i = 1; i <= pi.phaseWeeks; i++) {
+    if (i === pi.phaseWeeks && pi.isHypertrophy) {
+      weekNames.push('第' + i + '周（减载）');
+    } else {
+      weekNames.push('第' + i + '周');
+    }
+  }
+  var weekFocus, weekDetail;
+  if (pi.isStrength) {
+    weekFocus = [
+      '神经适应期 · 以复合动作为主，注重发力模式和募集效率',
+      '强度提升 · 主项加重5kg，专注控制离心阶段',
+      '峰值冲刺 · 冲击新重量，RPE允许到9'
+    ];
+    weekDetail = [
+      '保持推荐重量不变，专注于大重量技术：核心建压、离心控制、底部不弹震。4-6次区间，每组之间充分休息2-3分钟。',
+      '主项在上一周基础上加重5kg。如果加重后无法完成4次下限，回退到上周重量。注意记录RPE。',
+      '主项冲击新重量，RPE允许到9。辅助动作维持不变。本周是肌力阶段强度最高的一周。'
+    ];
+  } else {
+    weekFocus = [
+      '基础积累期 · 适应当前重量，注重动作质量',
+      '渐进超负荷 · 主项尝试加重2.5-5kg',
+      '强度冲刺 · 主项冲击新重量，辅助项维持'
+    ];
+    weekDetail = [
+      '本周保持推荐重量不变，专注于动作节奏和控制。如果上一周某动作轻松完成目标次数上限，可加重2.5kg。训练容量保持在基准水平。',
+      '主项（深蹲/卧推/硬拉等）尝试在上一周基础上加重2.5-5kg。辅助项保持不变。如果加重后无法完成目标次数下限，回退到上周重量。',
+      '主项继续冲击新重量。RPE允许到9。辅助项可适当加重2.5kg。本周是周期内训练强度最高的一周，注意充分热身和休息。'
+    ];
+    if (pi.phaseWeeks >= 4) {
+      weekFocus.push('减载恢复 · 训练量和强度降低40-50%，让身体恢复');
+      weekDetail.push('所有动作重量降低到第1周的80%，组数减少1组（最少2组），RPE控制在6-7。目的是消除疲劳、恢复关节，为下个阶段做准备。');
+    }
+  }
+  return {
+    currentWeek: cw,
+    totalWeeks: pi.phaseWeeks,
+    phaseType: pi.phaseType,
+    phaseName: pi.params.name,
+    weekName: weekNames[cw - 1] || weekNames[0],
+    focus: weekFocus[cw - 1] || weekFocus[0],
+    detail: weekDetail[cw - 1] || weekDetail[0],
+    isDeload: pi.isDeload,
+    isStrength: pi.isStrength,
+    phaseIndex: pi.phaseIndex
+  };
+}
+
+function renderCycleBar() {
+  var info = getCycleInfo();
+  if (!info) return '';
+  var html = '<div class="cycle-bar" style="cursor:pointer;" onclick="renderCycleOverview();showPage(\'cycle\');">';
+  for (var i = 1; i <= info.totalWeeks; i++) {
+    var cls = 'cycle-seg';
+    if (i < info.currentWeek) cls += ' done';
+    if (i === info.currentWeek) cls += ' active';
+    if (i === info.totalWeeks && !info.isStrength) cls += ' deload';
+    if (info.isStrength) cls += ' strength';
+    html += '<div class="' + cls + '"></div>';
+  }
+  html += '</div>';
+  html += '<div class="cycle-info" style="cursor:pointer;" onclick="renderCycleOverview();showPage(\'cycle\');">';
+  var phaseTag = info.isStrength ? '肌力' : '肌肥大';
+  html += '<span><span class="ci-label">' + info.weekName + '</span> · ' + info.focus + '</span>';
+  html += '<span style="font-size:11px;">' + phaseTag + '阶段 · 第' + info.currentWeek + '/' + info.totalWeeks + '周' + (info.isDeload ? ' · 减载' : '') + ' · 点击查看详情 ›</span>';
+  html += '</div>';
+  return html;
+}
+
+function renderCycleOverview() {
+  var info = getCycleInfo();
+  if (!info) { showPage('dashboard'); return; }
+
+  var pi = getPhaseInfo();
+  var html = '';
+
+  // 周期总览
+  html += '<div class="card">';
+  html += '<div class="card-title">' + info.phaseName + '阶段 · ' + pi.phaseWeeks + '周</div>';
+  html += '<div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:14px;">';
+  if (info.isStrength) {
+    html += '当前为肌力阶段：主项动作转为4-6次大重量训练，组间休息延长至2-3分钟，';
+    html += '以复合动作为核心。目的是提升神经驱动效率和结缔组织强度，为回到肌肥大阶段时能使用更大重量做准备。';
+  } else {
+    html += '当前为肌肥大阶段：8-12次区间，组间休息60-90秒，';
+    html += '前' + (pi.phaseWeeks - 1) + '周渐进超负荷（逐步加重），第' + pi.phaseWeeks + '周减载恢复。';
+  }
+  html += '</div>';
+  html += renderCycleBar();
+  html += '</div>';
+
+  // 各周详情
+  var weekData = [];
+  for (var w = 1; w <= pi.phaseWeeks; w++) {
+    var isDeloadWk = (w === pi.phaseWeeks && pi.isHypertrophy);
+    var wName, wFocus, wDetail;
+    if (info.isStrength) {
+      var sFocus = ['神经适应期 · 以复合动作为主，注重发力模式', '强度提升 · 主项加重5kg', '峰值冲刺 · 冲击新重量'];
+      var sDetail = [
+        '保持推荐重量不变，专注于大重量技术：核心建压、离心控制、底部不弹震。4-6次区间，每组间充分休息2-3分钟。',
+        '主项在上一周基础上加重5kg。如果加重后无法完成4次下限，回退到上周重量。注意记录RPE。',
+        '主项冲击新重量，RPE允许到9。辅助动作维持不变。本周是肌力阶段强度最高的一周。'
+      ];
+      wName = '第' + w + '周 · ' + ['神经适应', '强度提升', '峰值冲刺'][w - 1];
+      wFocus = sFocus[w - 1] || '继续提升';
+      wDetail = sDetail[w - 1] || '继续渐进超负荷。';
+    } else {
+      var hFocus = ['基础积累', '渐进超负荷', '强度冲刺', '减载恢复'];
+      var hDetail = [
+        '保持推荐重量不变，专注于动作节奏和控制。如果上周某动作轻松完成目标次数上限，可加重2.5kg。',
+        '主项（深蹲/卧推/硬拉等）尝试在上一周基础上加重2.5-5kg。辅助项保持不变。如果加重后无法完成目标次数下限，回退到上周重量。',
+        '主项继续冲击新重量。辅助项可适当加重2.5kg。RPE允许到9。注意充分热身和休息。',
+        '所有动作重量降低到第1周的80%，组数减少1组（最少2组），RPE控制在6-7。为下个阶段做准备。'
+      ];
+      wName = '第' + w + '周 · ' + hFocus[w - 1];
+      wFocus = (w === 1 ? '适应重量，打磨动作' : w === 2 ? '主项加重2.5-5kg' : w === 3 ? '冲击新重量，RPE可达9' : '降量40-50%，消除疲劳');
+      wDetail = hDetail[w - 1] || '';
+    }
+    weekData.push({ week: w, name: wName, focus: wFocus, detail: wDetail, isDeload: isDeloadWk });
+  }
+
+  weekData.forEach(function(w) {
+    var isCurrent = w.week === info.currentWeek;
+    var cls = 'cycle-overview-card';
+    if (isCurrent) cls += ' current';
+    if (w.isDeload) cls += ' deload';
+
+    html += '<div class="' + cls + '">';
+    html += '<div class="co-week">' + w.name;
+    if (isCurrent) html += ' <span class="co-badge now">本周</span>';
+    if (w.isDeload) html += ' <span class="co-badge deload">减载</span>';
+    html += '</div>';
+    html += '<div class="co-focus">' + w.focus + '</div>';
+    html += '<div class="co-detail">' + w.detail + '</div>';
+    html += '</div>';
+  });
+
+  // 完成本周的条件说明
+  html += '<div class="card" style="border-left:3px solid var(--accent);">';
+  html += '<div style="font-size:14px;font-weight:600;margin-bottom:8px;">如何进入下一周</div>';
+  html += '<div style="font-size:12px;color:var(--text2);line-height:1.8;">';
+  html += '完成本周所有训练日后，系统自动滚动到下一周并更新重量推荐。<br>';
+  html += '本阶段（' + info.phaseName + '）共 ' + pi.phaseWeeks + ' 周。完成后自动进入下一阶段';
+  var track = getPeriodizationTrack();
+  var nextIdx = (pi.phaseIndex + 1) % track.phases.length;
+  var nextType = track.phases[nextIdx].type;
+  var nextParams = getPhaseParams(nextType);
+  html += '：' + nextParams.name + '阶段。';
+  html += '</div>';
+  html += '</div>';
+
+  document.getElementById('cycleOverviewContent').innerHTML = html;
+}
+
+// ===== NSCA-CPT 肌肥大周期化模型 =====
+function renderYearRoadmap() {
+  var pi = getPhaseInfo();
+  var track = getPeriodizationTrack();
+  var paramLib = {
+    hypertrophy: getPhaseParams('hypertrophy'),
+    strength: getPhaseParams('strength')
+  };
+
+  var currentPhaseIdx = pi ? pi.phaseIndex : 0;
+  var elapsedWeeks = pi ? pi.elapsedWeeks : 0;
   var totalWeeksInTrack = 0;
   track.phases.forEach(function(p) { totalWeeksInTrack += p.weeks; });
-  var elapsedWeeks = completedCycles * 4 + (cw - 1);
-  var trackPos = elapsedWeeks % totalWeeksInTrack;
   var trackRound = Math.floor(elapsedWeeks / totalWeeksInTrack) + 1;
-
-  var currentPhaseIdx = 0;
-  var acc = 0;
-  for (var i = 0; i < track.phases.length; i++) {
-    acc += track.phases[i].weeks;
-    if (trackPos < acc) { currentPhaseIdx = i; break; }
-  }
 
   var html = '';
 
@@ -2150,55 +2574,80 @@ function checkWeekCompletion() {
 }
 
 function advanceToNextWeek() {
+  var track = getPeriodizationTrack();
+  var phaseIdx = state.plan.phaseIndex || 0;
   var cw = state.plan.cycleWeek || 1;
   var skippedDays = state.plan.skippedDays || [];
+  var currentPhase = track.phases[phaseIdx];
+  var phaseWeeks = currentPhase ? currentPhase.weeks : 4;
+  var currentParams = getPhaseParams(currentPhase ? currentPhase.type : 'hypertrophy');
 
-  if (cw < 4) {
-    // 进入下一周
+  if (cw < phaseWeeks) {
+    // 阶段内前进一周
     state.plan.cycleWeek = cw + 1;
     state.plan.completedDays = [];
     state.plan.weekStartDate = new Date().toISOString();
 
-    // 如果是第4周（减载周），降低重量
-    if (state.plan.cycleWeek === 4) {
+    // 阶段最后一周为减载（仅肌肥大阶段）
+    if (cw + 1 === phaseWeeks && currentPhase.type === 'hypertrophy') {
       applyDeload();
     } else {
-      // 第2、3周：尝试渐进超负荷
-      applyProgressiveOverload();
+      applyProgressiveOverload(currentParams.overloadKg);
     }
 
-    // 请假的训练日顺延到下周：重新标记为未完成，保留训练内容
-    // skippedDays 清空，因为新的一周开始，这些日的内容已经在weekPlan中了
     var skippedCount = skippedDays.length;
     state.plan.skippedDays = [];
 
     saveState();
-    var msg = '本周训练全部处理完！进入' + getCycleInfo().weekName;
-    if (skippedCount > 0) {
-      msg += '（' + skippedCount + '天请假已顺延至本周）';
-    }
+    var info = getCycleInfo();
+    var msg = '本周训练全部处理完！进入' + info.weekName;
+    if (info.isStrength) msg += '（肌力阶段）';
+    if (skippedCount > 0) msg += '（' + skippedCount + '天请假已顺延至本周）';
     showToast(msg);
   } else {
-    // 完成4周周期，进入新周期第1周
+    // 当前阶段结束，进入下一阶段
+    var nextPhaseIdx = phaseIdx + 1;
+    if (nextPhaseIdx >= track.phases.length) {
+      // 完成完整周期化路线，从头开始新轮次
+      nextPhaseIdx = 0;
+      state.plan.cycleCount = (state.plan.cycleCount || 0) + 1;
+    }
+
+    var nextPhase = track.phases[nextPhaseIdx];
+    var nextParams = getPhaseParams(nextPhase.type);
+
+    state.plan.phaseIndex = nextPhaseIdx;
+    state.plan.phaseType = nextPhase.type;
     state.plan.cycleWeek = 1;
     state.plan.completedDays = [];
     state.plan.skippedDays = [];
-    state.plan.cycleStart = new Date().toISOString();
     state.plan.weekStartDate = new Date().toISOString();
-    state.plan.cycleCount = (state.plan.cycleCount || 0) + 1;
+    if (nextPhaseIdx === 0) {
+      state.plan.cycleStart = new Date().toISOString();
+    }
 
-    // 重新生成计划（保留profile，新周期辅助动作轮换）
-    var newPlan = generatePlan(state.profile);
+    // 重新生成计划（新阶段参数）
+    var newPlan = generatePlan(state.profile, nextPhase.type);
     state.plan.weekPlan = newPlan.weekPlan;
     state.plan.id = newPlan.id;
     state.plan.createdAt = newPlan.createdAt;
 
     saveState();
-    showToast('4周周期完成！新周期已开始');
+    var phaseMsg = nextParams.name + '阶段已开始';
+    if (nextPhase.type === 'strength') {
+      phaseMsg += '：主项转4-6次，组间休息2-3分钟，加重幅度5kg';
+    } else {
+      phaseMsg += '：回到8-12次区间，组间休息60-90秒，加重幅度2.5kg';
+    }
+    if (nextPhaseIdx === 0) {
+      phaseMsg = '周期化路线完成一轮！开启新轮次 · ' + phaseMsg;
+    }
+    showToast(phaseMsg);
   }
 }
 
-function applyProgressiveOverload() {
+function applyProgressiveOverload(overloadKg) {
+  overloadKg = overloadKg || 2.5;
   // 获取最近一次训练记录中各动作的最大重量
   state.plan.weekPlan.forEach(function(day) {
     if (day.isRest) return;
@@ -2223,7 +2672,7 @@ function applyProgressiveOverload() {
 
           if (achievedTopReps && maxWeight > 0) {
             // 在exTpl上标记建议加重
-            exTpl.suggestedIncrease = 2.5;
+            exTpl.suggestedIncrease = overloadKg;
           }
         }
       }
@@ -2252,8 +2701,9 @@ function renderDashboard() {
 
   var levelText = state.plan.level === 1 ? 'Level 1 初级' : state.plan.level === 2 ? 'Level 2 中级' : 'Level 3 高级';
   var info = getCycleInfo();
-  document.getElementById('weekTitle').textContent = info ? info.weekName + ' · 训练计划' : '本周训练计划';
-  document.getElementById('weekSubtitle').textContent = levelText + ' · ' + state.plan.daysPerWeek + '天/周 · ' + state.profile.goal;
+  document.getElementById('weekTitle').textContent = info ? info.phaseName + '阶段 · ' + info.weekName + ' · 训练计划' : '本周训练计划';
+  var phaseTag = info && info.isStrength ? '肌力' : '肌肥大';
+  document.getElementById('weekSubtitle').textContent = levelText + ' · ' + state.plan.daysPerWeek + '天/周 · ' + phaseTag + ' · ' + state.profile.goal;
 
   // 周期进度条
   var cycleBar = document.getElementById('cycleProgressBar');
@@ -2951,8 +3401,10 @@ function openTraining(dayIdx) {
         state.currentTrainingData.exercises[exIdx].sets[setIdx][field] = this.value ? Number(this.value) : null;
       } else {
         state.currentTrainingData.exercises[exIdx].sets[setIdx].done = this.checked;
-        // 勾选完成 → 启动组间休息计时器
+        // 勾选完成 → 播放音效 + 鼓励语 + 启动组间休息计时器
         if (!field && this.checked) {
+          playCheckSound();
+          showEncouragement();
           var day = state.plan.weekPlan[state.currentDay];
           var exTpl = day.exercises[exIdx];
           var ex = findExercise(exTpl.exerciseId);
@@ -3611,6 +4063,7 @@ function renderSettings() {
 
 // ===== 事件绑定 =====
 document.getElementById('navDashboard').addEventListener('click', function() { renderDashboard(); showPage('dashboard'); });
+document.getElementById('navNutrition').addEventListener('click', function() { renderNutrition(); showPage('nutrition'); });
 document.getElementById('navProgress').addEventListener('click', function() { renderProgress(); showPage('progress'); });
 document.getElementById('navMeasure').addEventListener('click', function() { renderMeasure(); showPage('measure'); });
 document.getElementById('navSettings').addEventListener('click', function() { renderSettings(); showPage('settings'); });
@@ -3629,6 +4082,19 @@ document.getElementById('regenerateBtn').addEventListener('click', function() {
     showToast('训练计划已重新生成');
   }
 });
+document.getElementById('clearLogsBtn').addEventListener('click', function() {
+  if (confirm('确定清除所有训练记录？训练进度将归零，但个人信息和计划保留。此操作不可恢复。')) {
+    state.logs = [];
+    if (state.plan) {
+      state.plan.completedDays = [];
+      state.plan.skippedDays = [];
+    }
+    saveState();
+    renderSettings();
+    showToast('训练记录已清除');
+  }
+});
+
 document.getElementById('clearDataBtn').addEventListener('click', function() {
   if (confirm('确定清除所有数据？此操作不可恢复。')) {
     localStorage.removeItem('fitnessBuddy');
