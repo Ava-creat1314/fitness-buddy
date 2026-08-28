@@ -1,0 +1,3659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="健身搭子">
+<meta name="theme-color" content="#0f1115">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="女性健身训练计划助手 - 肌肥大周期化训练">
+<title>健身搭子</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0f1115; --card:#1a1d24; --border:#2a2d34; --accent:#4ec9b0;
+  --text:#e0e0e0; --text2:#888; --danger:#e06c75; --warn:#ffaa00;
+}
+body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.hidden{display:none!important;}
+
+/* ===== 顶部导航 ===== */
+.navbar{background:var(--card);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.navbar .logo{font-size:18px;font-weight:700;color:var(--accent);}
+.navbar .nav-btns{display:flex;gap:8px;}
+.nav-btn{padding:6px 14px;border:1px solid var(--border);background:transparent;color:var(--text2);border-radius:8px;cursor:pointer;font-size:13px;transition:all .2s;}
+.nav-btn:hover,.nav-btn.active{border-color:var(--accent);color:var(--accent);}
+
+/* ===== 通用 ===== */
+.container{max-width:960px;margin:0 auto;padding:20px;}
+.card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid var(--border);}
+.card-title{font-size:16px;font-weight:700;margin-bottom:12px;color:var(--accent);}
+.btn{padding:10px 24px;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;}
+.btn-primary{background:var(--accent);color:var(--bg);}
+.btn-primary:hover{opacity:0.85;}
+.btn-secondary{background:var(--border);color:var(--text);}
+.btn-secondary:hover{border-color:var(--accent);}
+.btn-danger{background:var(--danger);color:#fff;}
+input,select,textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:14px;width:100%;}
+input:focus,select:focus{outline:none;border-color:var(--accent);}
+label{font-size:13px;color:var(--text2);margin-bottom:4px;display:block;}
+
+/* ===== 问卷 ===== */
+.quiz-step{display:none;}
+.quiz-step.active{display:block;}
+.quiz-progress{display:flex;gap:4px;margin-bottom:20px;}
+.quiz-progress .seg{flex:1;height:4px;border-radius:2px;background:var(--border);transition:background .3s;}
+.quiz-progress .seg.done{background:var(--accent);}
+.quiz-progress .seg.current{background:var(--accent);}
+.quiz-option{padding:14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;margin-bottom:8px;transition:all .15s;}
+.quiz-option:hover{border-color:var(--accent);}
+.quiz-option.selected{border-color:var(--accent);background:rgba(78,201,176,0.1);}
+.quiz-option .opt-label{font-size:15px;font-weight:600;}
+.quiz-option .opt-desc{font-size:12px;color:var(--text2);margin-top:4px;}
+.quiz-nav{display:flex;justify-content:space-between;margin-top:20px;}
+
+/* ===== 周计划看板 ===== */
+.week-dashboard{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+@media(max-width:768px){.week-dashboard{grid-template-columns:repeat(2,1fr);}}
+.day-card{background:var(--card);border-radius:10px;padding:12px;border:1px solid var(--border);cursor:pointer;transition:all .2s;min-height:100px;}
+.day-card:hover{border-color:var(--accent);}
+.day-card.rest{opacity:0.5;}
+.day-card.today{border-color:var(--accent);box-shadow:0 0 0 2px rgba(78,201,176,0.2);}
+.day-card .day-name{font-size:12px;color:var(--text2);margin-bottom:6px;}
+.day-card .day-type{font-size:14px;font-weight:600;}
+.day-card .day-type.rest{color:var(--text2);}
+.day-card .ex-count{font-size:11px;color:var(--text2);margin-top:4px;}
+.day-card .done-badge{font-size:10px;color:var(--accent);margin-top:4px;}
+
+/* ===== 训练卡 ===== */
+.training-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.training-header .title{font-size:20px;font-weight:700;}
+.exercise-item{background:var(--card);border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid var(--border);}
+.exercise-item .ex-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.exercise-item .ex-name{font-size:15px;font-weight:600;}
+.exercise-item .ex-muscle{font-size:11px;color:var(--text2);margin-top:2px;}
+.exercise-item .ex-params{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.exercise-item .param-tag{background:var(--border);padding:3px 8px;border-radius:5px;font-size:11px;color:var(--text2);}
+.exercise-item .param-tag .val{color:var(--text);font-weight:600;}
+.exercise-item .ex-note{font-size:11px;color:var(--accent);margin-bottom:8px;}
+.sets-table{width:100%;margin-top:8px;}
+.sets-table th{font-size:11px;color:var(--text2);text-align:left;padding:4px;font-weight:400;}
+.sets-table td{padding:4px;}
+.set-input{width:60px!important;padding:4px 8px!important;font-size:13px!important;text-align:center;}
+.set-row .set-num{color:var(--text2);font-size:12px;width:30px;}
+.cue-toggle{font-size:12px;color:var(--accent);cursor:pointer;margin-top:6px;}
+.cue-content{display:none;margin-top:8px;padding:8px;background:var(--bg);border-radius:8px;font-size:12px;line-height:1.8;color:var(--text2);}
+.cue-content.show{display:block;}
+.cue-content .cue-section{margin-bottom:8px;}
+.cue-content .cue-section-title{color:var(--accent);font-weight:600;margin-bottom:4px;}
+.cue-content .error-list li{color:#c8a0a0;}
+
+/* ===== 训练总结 ===== */
+.summary-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.summary-stat{background:var(--card);border-radius:10px;padding:14px;text-align:center;}
+.summary-stat .stat-num{font-size:24px;font-weight:700;color:var(--accent);}
+.summary-stat .stat-label{font-size:11px;color:var(--text2);margin-top:4px;}
+
+/* ===== 营养建议 ===== */
+.nutrition-card{background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border);}
+.nutrition-card .macro{display:flex;gap:16px;margin-bottom:12px;}
+.nutrition-card .macro-item{text-align:center;flex:1;}
+.nutrition-card .macro-item .macro-num{font-size:28px;font-weight:700;}
+.nutrition-card .macro-item .macro-unit{font-size:12px;color:var(--text2);}
+.nutrition-card .macro-item.protein .macro-num{color:var(--accent);}
+.nutrition-card .macro-item.carb .macro-num{color:var(--warn);}
+.food-option{background:var(--bg);border-radius:8px;padding:10px;margin-bottom:8px;}
+.food-option .fo-name{font-size:13px;font-weight:600;margin-bottom:4px;}
+.food-option .fo-items{font-size:12px;color:var(--text2);}
+.food-option .fo-items .qty{font-size:10px;color:var(--text3);}
+.food-option .fo-tag{display:inline-block;font-size:10px;font-weight:400;color:var(--accent);background:rgba(78,201,176,0.12);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle;}
+
+/* ===== 时段选择器 ===== */
+.timeslot-selector{display:flex;gap:8px;margin-bottom:14px;}
+.timeslot-btn{flex:1;padding:10px 8px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;text-align:center;transition:all 0.2s;font-size:13px;color:var(--text2);}
+.timeslot-btn.active{border-color:var(--accent);background:rgba(78,201,176,0.08);color:var(--accent);font-weight:600;}
+.timeslot-btn .ts-icon{display:block;font-size:18px;margin-bottom:2px;}
+.timeslot-btn .ts-label{font-size:12px;}
+.timeslot-btn .ts-desc{font-size:10px;color:var(--text3);margin-top:2px;}
+.timeslot-btn.active .ts-desc{color:var(--accent);opacity:0.7;}
+
+/* ===== 营养问答卡片 ===== */
+.nutri-q{background:var(--bg);border-radius:8px;margin-bottom:8px;overflow:hidden;border:1px solid var(--border);}
+.nutri-q .nq-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text1);}
+.nutri-q .nq-toggle .nq-arrow{font-size:11px;color:var(--text3);transition:transform 0.2s;}
+.nutri-q.open .nq-arrow{transform:rotate(180deg);}
+.nutri-q .nq-answer{display:none;padding:0 12px 10px;font-size:12px;color:var(--text3);line-height:1.6;}
+.nutri-q.open .nq-answer{display:block;}
+
+/* ===== 鼓励语 ===== */
+.encourage-box{background:linear-gradient(135deg,rgba(78,201,176,0.15),rgba(78,201,176,0.05));border:1px solid rgba(78,201,176,0.3);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center;}
+.encourage-box .enc-text{font-size:15px;line-height:1.6;}
+
+/* ===== 进度页 ===== */
+.progress-section{margin-bottom:20px;}
+.progress-bar-wrap{background:var(--border);border-radius:8px;height:24px;overflow:hidden;margin-bottom:8px;}
+.progress-bar-fill{height:100%;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--bg);font-weight:600;transition:width .5s;}
+
+/* ===== 空状态 ===== */
+.empty-state{text-align:center;padding:60px 20px;}
+.empty-state .icon{font-size:48px;margin-bottom:16px;}
+.empty-state .title{font-size:18px;font-weight:600;margin-bottom:8px;}
+.empty-state .desc{font-size:13px;color:var(--text2);margin-bottom:20px;}
+
+/* ===== 返回高亮 ===== */
+@keyframes highlightPulse {
+  0% { box-shadow: 0 0 0 0 rgba(78,201,176,0.5); border-color: var(--accent); }
+  50% { box-shadow: 0 0 0 6px rgba(78,201,176,0.15); border-color: var(--accent); }
+  100% { box-shadow: 0 0 0 0 rgba(78,201,176,0); }
+}
+.day-card.just-returned { animation: highlightPulse 1.5s ease-out; }
+.day-card.skipped { opacity:0.5; border-style:dashed; }
+.day-card .skip-badge { font-size:10px; color:var(--text2); margin-top:4px; }
+.day-card .skip-btn { font-size:11px; color:var(--text2); background:none; border:1px solid var(--border); border-radius:5px; padding:2px 8px; cursor:pointer; margin-top:6px; transition:all .2s; }
+.day-card .skip-btn:hover { border-color:var(--danger,#e57373); color:var(--danger,#e57373); }
+
+/* ===== 组间休息计时器 ===== */
+.rest-timer-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--accent);padding:14px 20px;z-index:200;transform:translateY(100%);transition:transform .35s cubic-bezier(.22,.61,.36,1);box-shadow:0 -4px 24px rgba(0,0,0,0.4);}
+.rest-timer-bar.show{transform:translateY(0);}
+.rest-timer-bar .rt-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.rest-timer-bar .rt-label{font-size:13px;color:var(--text2);}
+.rest-timer-bar .rt-num{font-size:32px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1;}
+.rest-timer-bar .rt-controls{display:flex;gap:8px;}
+.rest-timer-bar .rt-btn{padding:6px 16px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);cursor:pointer;font-size:12px;transition:all .15s;}
+.rest-timer-bar .rt-btn:hover{border-color:var(--accent);color:var(--accent);}
+.rest-timer-bar .rt-btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600;}
+.rest-timer-bar .rt-progress{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.rest-timer-bar .rt-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .95s linear;}
+.rest-timer-bar.ending{animation:restTimerPulse .5s ease-out 3;}
+@keyframes restTimerPulse{0%,100%{box-shadow:0 -4px 24px rgba(0,0,0,0.4);}50%{box-shadow:0 -4px 32px rgba(78,201,176,0.6);border-top:2px solid var(--accent);}}
+.rest-timer-bar.paused .rt-progress-fill{transition:none;}
+.rest-timer-bar.paused .rt-num{color:var(--warn);}
+
+/* ===== Toast 提示 ===== */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);background:var(--card);border:1px solid var(--accent);border-radius:10px;padding:12px 24px;font-size:14px;color:var(--accent);z-index:300;transition:transform .3s cubic-bezier(.22,.61,.36,1);box-shadow:0 4px 24px rgba(0,0,0,0.4);white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ===== 换动作弹窗 ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:400;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;pointer-events:none;}
+.modal-overlay.show{opacity:1;pointer-events:auto;}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:420px;width:90%;max-height:70vh;overflow-y:auto;transform:scale(0.9);transition:transform .2s;}
+.modal-overlay.show .modal-box{transform:scale(1);}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--text2);margin-bottom:14px;}
+.swap-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all .15s;}
+.swap-item:hover{border-color:var(--accent);background:rgba(78,201,176,0.06);}
+.swap-item .si-name{font-size:14px;font-weight:600;}
+.swap-item .si-info{font-size:11px;color:var(--text2);margin-top:2px;}
+.swap-item .si-equip{font-size:10px;color:var(--accent);background:rgba(78,201,176,0.12);border-radius:4px;padding:1px 6px;white-space:nowrap;}
+.swap-item.current{opacity:0.4;cursor:default;}
+.swap-item.current:hover{border-color:var(--border);background:transparent;}
+.ex-swap-btn{font-size:11px;color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;cursor:pointer;background:transparent;margin-left:8px;transition:all .15s;}
+.ex-swap-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ===== 周期大纲 ===== */
+.cycle-bar{display:flex;align-items:center;gap:4px;margin-bottom:14px;}
+.cycle-seg{flex:1;height:6px;border-radius:3px;background:var(--border);transition:background .3s;}
+.cycle-seg.active{background:var(--accent);}
+.cycle-seg.done{background:rgba(78,201,176,0.5);}
+.cycle-seg.deload{background:var(--warn);}
+.cycle-info{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text2);margin-bottom:14px;}
+.cycle-info .ci-label{font-weight:600;color:var(--accent);}
+.cycle-overview-card{background:var(--card);border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid var(--border);}
+.cycle-overview-card.deload{border-color:var(--warn);}
+.cycle-overview-card .co-week{font-size:12px;color:var(--text2);margin-bottom:4px;}
+.cycle-overview-card .co-focus{font-size:15px;font-weight:600;margin-bottom:6px;}
+.cycle-overview-card .co-detail{font-size:12px;color:var(--text2);line-height:1.6;}
+.cycle-overview-card.current{border-color:var(--accent);box-shadow:0 0 0 2px rgba(78,201,176,0.15);}
+.cycle-overview-card .co-badge{display:inline-block;font-size:10px;border-radius:4px;padding:1px 6px;margin-left:6px;}
+.cycle-overview-card .co-badge.now{background:var(--accent);color:var(--bg);font-weight:600;}
+.cycle-overview-card .co-badge.deload{background:var(--warn);color:var(--bg);}
+
+/* ===== 身体维度记录 ===== */
+.measure-reminder-card{background:linear-gradient(135deg, var(--accent-light), var(--bg));border-radius:12px;padding:14px;border:1px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.measure-input-group{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.measure-input-group label{flex-shrink:0;width:70px;font-size:13px;color:var(--text2);margin:0;}
+.measure-input-group input{flex:1;}
+.measure-input-group .unit{font-size:12px;color:var(--text3);flex-shrink:0;}
+.measure-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.measure-grid .mg-item{background:var(--bg);border-radius:8px;padding:10px;text-align:center;}
+.measure-grid .mg-label{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.measure-grid .mg-value{font-size:18px;font-weight:700;color:var(--accent);}
+.measure-grid .mg-change{font-size:10px;margin-top:2px;}
+.measure-grid .mg-change.up{color:var(--danger);}
+.measure-grid .mg-change.down{color:var(--accent);}
+.measure-timeline-item{background:var(--bg);border-radius:8px;padding:12px;margin-bottom:8px;border:1px solid var(--border);}
+.measure-timeline-item .mt-date{font-size:12px;color:var(--text2);margin-bottom:6px;}
+.measure-timeline-item .mt-data{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px;}
+.measure-timeline-item .mt-data .mt-cell{display:flex;flex-direction:column;}
+.measure-timeline-item .mt-data .mt-cell .mtc-label{font-size:10px;color:var(--text3);}
+.measure-timeline-item .mt-data .mt-cell .mtc-val{font-size:14px;font-weight:600;}
+.measure-photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+.measure-photo-grid .mp-item{position:relative;border-radius:8px;overflow:hidden;aspect-ratio:3/4;background:var(--border);}
+.measure-photo-grid .mp-item img{width:100%;height:100%;object-fit:cover;}
+.measure-photo-grid .mp-item .mp-label{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);font-size:10px;color:#fff;padding:2px 6px;text-align:center;}
+.measure-section-title{font-size:13px;font-weight:600;margin:16px 0 10px;color:var(--text);}
+.photo-input-label{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border:1px dashed var(--border);border-radius:8px;cursor:pointer;font-size:12px;color:var(--text2);transition:all .15s;}
+.photo-input-label:hover{border-color:var(--accent);color:var(--accent);}
+.photo-preview{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.photo-preview .pp-item{position:relative;width:60px;height:80px;border-radius:6px;overflow:hidden;}
+.photo-preview .pp-item img{width:100%;height:100%;object-fit:cover;}
+.photo-preview .pp-remove{position:absolute;top:0;right:0;background:rgba(0,0,0,0.7);color:#fff;font-size:10px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:0 0 0 6px;}
+
+/* ===== 柱状图 ===== */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:160px;padding:0 4px 24px;position:relative;overflow-x:auto;}
+.bar-chart .bc-bar-wrap{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;flex-shrink:0;min-width:36px;height:100%;position:relative;}
+.bar-chart .bc-bar{width:100%;max-width:32px;border-radius:6px 6px 0 0;transition:height .4s cubic-bezier(.22,.61,.36,1);position:relative;cursor:pointer;min-height:3px;}
+.bar-chart .bc-bar.accent{background:var(--accent);}
+.bar-chart .bc-bar.danger{background:var(--danger);}
+.bar-chart .bc-bar.warn{background:var(--warn);}
+.bar-chart .bc-bar.deload{background:var(--text2);}
+.bar-chart .bc-value{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:600;color:var(--text);white-space:nowrap;}
+.bar-chart .bc-label{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:10px;color:var(--text2);white-space:nowrap;}
+.bar-chart .bc-axis{position:absolute;left:0;right:0;top:0;bottom:24px;pointer-events:none;}
+.bar-chart .bc-axis-line{position:absolute;left:0;right:0;border-top:1px dashed var(--border);font-size:9px;color:var(--text3);}
+.bar-chart .bc-axis-line span{position:absolute;left:0;top:-12px;color:var(--text3);font-size:9px;}
+
+/* 多组柱对比（同一动作多周重量） */
+.bar-group{display:flex;align-items:flex-end;gap:3px;height:100%;}
+.bar-group .bc-bar{max-width:20px;}
+
+/* ===== 周期化大纲 ===== */
+.year-roadmap{position:relative;padding:8px 0 20px;}
+.year-connector{position:absolute;left:20px;top:24px;bottom:24px;width:3px;background:var(--border);border-radius:2px;z-index:0;}
+.year-quarter{position:relative;padding-left:52px;margin-bottom:24px;z-index:1;}
+.year-dot{position:absolute;left:12px;top:4px;width:20px;height:20px;border-radius:50%;background:var(--card);border:3px solid var(--accent);z-index:2;}
+.year-dot.done{background:var(--accent);}
+.year-dot.deload{border-color:var(--warn);}
+.year-dot.future{border-color:var(--text2);}
+.year-quarter-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.year-quarter-sub{font-size:12px;color:var(--accent);margin-bottom:6px;font-weight:600;}
+.year-quarter-detail{font-size:12px;color:var(--text2);line-height:1.7;}
+.year-cycles{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
+.year-cycle-tag{font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);color:var(--text2);}
+.year-cycle-tag.done{background:var(--accent);color:var(--bg);border-color:var(--accent);}
+.year-cycle-tag.current{background:rgba(78,201,176,0.15);color:var(--accent);border-color:var(--accent);font-weight:600;}
+.year-cycle-tag.deload{border-color:var(--warn);color:var(--warn);}
+
+/* NSCA周期参数表 */
+.nsca-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;}
+.nsca-table th{text-align:center;padding:8px 6px;color:var(--text2);font-weight:600;font-size:11px;border-bottom:1px solid var(--border);}
+.nsca-table td{text-align:center;padding:8px 6px;border-bottom:1px solid var(--border);color:var(--text);}
+.nsca-table td.label{text-align:left;font-weight:600;color:var(--text);}
+.nsca-table tr.current td{background:rgba(78,201,176,0.08);}
+.nsca-table tr.current td.label{color:var(--accent);}
+
+/* 周期卡片 */
+.cycle-phase-card{background:var(--bg);border-radius:10px;padding:14px;margin-bottom:12px;border:1px solid var(--border);transition:all .2s;}
+.cycle-phase-card.current{border-color:var(--accent);box-shadow:0 0 0 2px rgba(78,201,176,0.15);}
+.cycle-phase-card.done{opacity:0.6;}
+.cycle-phase-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.cycle-phase-name{font-size:16px;font-weight:700;}
+.cycle-phase-name .num{color:var(--accent);margin-right:6px;}
+.cycle-phase-tag{font-size:10px;padding:2px 10px;border-radius:4px;font-weight:600;}
+.cycle-phase-tag.current{background:var(--accent);color:var(--bg);}
+.cycle-phase-tag.done{background:var(--border);color:var(--text2);}
+.cycle-phase-tag.future{background:transparent;border:1px solid var(--border);color:var(--text2);}
+.cycle-phase-params{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;}
+.cycle-phase-param{text-align:center;}
+.cycle-phase-param .cpp-label{font-size:10px;color:var(--text3);margin-bottom:2px;}
+.cycle-phase-param .cpp-val{font-size:14px;font-weight:700;color:var(--accent);}
+.cycle-phase-desc{font-size:12px;color:var(--text2);line-height:1.6;}
+
+/* ===== 箭头流程图（周期化路线） ===== */
+.perio-track{margin-bottom:20px;}
+.perio-track-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.perio-track-label{font-size:15px;font-weight:700;}
+.perio-track-sub{font-size:11px;color:var(--text3);}
+.perio-arrows{display:flex;align-items:stretch;gap:2px;overflow-x:auto;padding-bottom:4px;}
+.perio-arrow{flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:80px;padding:10px 6px;color:#fff;font-size:11px;text-align:center;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%,10px 50%);position:relative;}
+.perio-arrow:first-child{clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%);}
+.perio-arrow:last-child{clip-path:polygon(0 0,100% 0,100% 100%,0 100%,10px 50%);}
+.perio-arrow.endurance{background:#4ec9b0;}
+.perio-arrow.hypertrophy{background:#a78bfa;}
+.perio-arrow.strength{background:#e06c75;}
+.perio-arrow.power{background:#ffaa00;}
+.perio-arrow.done{opacity:0.5;}
+.perio-arrow.current{outline:2px solid #fff;outline-offset:-2px;z-index:2;transform:scale(1.05);}
+.perio-arrow .pa-weeks{font-size:16px;font-weight:700;line-height:1.2;}
+.perio-arrow .pa-type{font-size:9px;opacity:0.85;margin-top:2px;line-height:1.1;}
+.perio-arrow .pa-num{font-size:8px;opacity:0.6;margin-top:2px;}
+.perio-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;font-size:11px;color:var(--text2);}
+.perio-legend .pl-item{display:flex;align-items:center;gap:4px;}
+.perio-legend .pl-dot{width:10px;height:10px;border-radius:3px;}
+.perio-params{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;}
+.perio-params .pp-item{background:var(--bg);border-radius:6px;padding:6px;text-align:center;}
+.perio-params .pp-label{font-size:9px;color:var(--text3);}
+.perio-params .pp-val{font-size:13px;font-weight:700;color:var(--accent);}
+.perio-focus-note{font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="logo">健身搭子</div>
+  <div class="nav-btns">
+    <button class="nav-btn active" data-page="dashboard" id="navDashboard">训练计划</button>
+    <button class="nav-btn" data-page="progress" id="navProgress">训练进度</button>
+    <button class="nav-btn" data-page="measure" id="navMeasure">身体记录</button>
+    <button class="nav-btn" data-page="settings" id="navSettings">设置</button>
+  </div>
+</div>
+
+<!-- ===== 页面1: 问卷 ===== -->
+<div id="page-quiz" class="container">
+  <div class="card">
+    <div class="quiz-progress" id="quizProgress"></div>
+    <div id="quizContent"></div>
+  </div>
+</div>
+
+<!-- ===== 页面2: 周计划看板 ===== -->
+<div id="page-dashboard" class="container hidden">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div>
+        <div style="font-size:20px;font-weight:700;" id="weekTitle">本周训练计划</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px;" id="weekSubtitle"></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" id="cycleOverviewBtn" style="padding:6px 12px;font-size:13px;">周期大纲</button>
+        <button class="btn btn-secondary" id="regenerateBtn">重新生成</button>
+      </div>
+    </div>
+    <div id="cycleProgressBar"></div>
+    <div class="week-dashboard" id="weekDashboard"></div>
+  </div>
+  <div id="todayTip" class="card" style="text-align:center;">
+    <div style="font-size:13px;color:var(--text2);">点击任意训练日查看详情</div>
+  </div>
+  <div id="measureReminder" style="display:none;"></div>
+</div>
+
+<!-- ===== 页面2b: 周期大纲 ===== -->
+<div id="page-cycle" class="container hidden">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+    <button class="btn btn-secondary" id="backFromCycle" style="padding:6px 14px;">← 返回</button>
+    <div style="font-size:18px;font-weight:700;">4周周期大纲</div>
+    <button class="btn btn-secondary" id="yearRoadmapBtn" style="padding:6px 14px;margin-left:auto;font-size:13px;">周期化模型 ›</button>
+  </div>
+  <div id="cycleOverviewContent"></div>
+</div>
+
+<!-- ===== 页面2c: 年度计划大纲 ===== -->
+<div id="page-year" class="container hidden">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+    <button class="btn btn-secondary" id="backFromYear" style="padding:6px 14px;">← 返回</button>
+    <div style="font-size:18px;font-weight:700;">NSCA-CPT 周期化模型</div>
+  </div>
+  <div id="yearRoadmapContent"></div>
+</div>
+
+<!-- ===== 页面3: 训练卡详情 ===== -->
+<div id="page-training" class="container hidden">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+    <button class="btn btn-secondary" id="backToDashboard" style="padding:6px 14px;">← 返回</button>
+    <div id="trainingDayTitle" style="font-size:18px;font-weight:700;"></div>
+  </div>
+  <div id="trainingContent"></div>
+  <div style="margin-top:16px;text-align:center;">
+    <button class="btn btn-primary" id="finishTrainingBtn" style="padding:12px 40px;font-size:16px;">完成训练</button>
+  </div>
+</div>
+
+<!-- ===== 页面4: 训练总结 ===== -->
+<div id="page-summary" class="container hidden">
+  <div id="summaryContent"></div>
+  <div style="margin-top:16px;text-align:center;">
+    <button class="btn btn-secondary" id="backFromSummary">返回计划</button>
+  </div>
+</div>
+
+<!-- ===== 页面5: 进度 ===== -->
+<div id="page-progress" class="container hidden">
+  <div id="progressContent"></div>
+</div>
+
+<!-- ===== 页面5b: 身体维度记录 ===== -->
+<div id="page-measure" class="container hidden">
+  <div id="measureContent"></div>
+</div>
+
+<!-- ===== 页面6: 设置 ===== -->
+<div id="page-settings" class="container hidden">
+  <div class="card">
+    <div class="card-title">个人信息</div>
+    <div id="settingsInfo"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">数据管理</div>
+    <button class="btn btn-danger" id="clearDataBtn">清除所有数据</button>
+  </div>
+</div>
+
+<!-- 组间休息计时器 -->
+<div class="rest-timer-bar" id="restTimerBar">
+  <div class="rt-top">
+    <div>
+      <div class="rt-label" id="rtLabel">组间休息</div>
+      <div class="rt-num" id="rtNum">90</div>
+    </div>
+    <div class="rt-controls">
+      <button class="rt-btn" id="rtAdd30">+30s</button>
+      <button class="rt-btn" id="rtPause">暂停</button>
+      <button class="rt-btn primary" id="rtSkip">跳过</button>
+    </div>
+  </div>
+  <div class="rt-progress"><div class="rt-progress-fill" id="rtProgressFill" style="width:100%;"></div></div>
+</div>
+
+<!-- Toast 提示 -->
+<div class="toast" id="toast"></div>
+
+<!-- 换动作弹窗 -->
+<div class="modal-overlay" id="swapModal">
+  <div class="modal-box">
+    <div class="modal-title" id="swapTitle">替换动作</div>
+    <div class="modal-sub" id="swapSub">选择一个同肌群同模式的替代动作</div>
+    <div id="swapList"></div>
+  </div>
+</div>
+
+<script>
+// ===== exercise-db.js 内联开始 =====
+// 健身搭子 - 动作库数据 v1.0
+// 基于NSCA-CPT体系，覆盖Level 1-3
+
+const EXERCISE_LIBRARY = [
+  // ===== 蹲 Squat =====
+  {
+    id: "EX001", name: "高脚杯深蹲", nameEn: "Goblet Squat",
+    pattern: "squat", primary: ["股四头肌","臀大肌"], secondary: ["腘绳肌","核心"],
+    equipment: "dumbbell", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "12-15", rest: 90, tempo: "2-0-1-0",
+    setup: ["双脚与肩同宽，脚尖外展15-30度","双手捧哑铃一端置于胸前","核心收紧，挺胸抬头","肘部下沉指向地面"],
+    execution: ["屈髋屈膝同时下蹲，像坐椅子","膝盖追踪脚尖方向","下蹲至肘部触碰膝盖内侧","蹬地站起，保持躯干角度不变"],
+    errors: ["膝盖内扣","躯干过度前倾","脚跟离地","底部弹震"],
+    regression: "徒手深蹲", progression: "杠铃高杠深蹲", alternative: "腿举",
+    contraindications: { knee: [], lumbar: [] }
+  },
+  {
+    id: "EX002", name: "杠铃高杠深蹲", nameEn: "Barbell High-Bar Squat",
+    pattern: "squat", primary: ["股四头肌","臀大肌"], secondary: ["腘绳肌","核心","小腿"],
+    equipment: "barbell", difficulty: 3, minLevel: 1,
+    sets: 4, reps: "6-8", rest: 180, tempo: "2-0-1-0",
+    setup: ["双脚与肩同宽，脚尖外展15-30度","杠铃放置于斜方肌上沿","核心收紧，挺胸抬头，肘部下压","深呼吸，胸腔和腹腔同时扩张建压"],
+    execution: ["屈髋屈膝同时下蹲","膝盖追踪脚尖方向","下蹲至大腿与地面平行或略低","蹬地站起，保持躯干角度不变","顶部不锁死膝关节"],
+    errors: ["膝盖内扣（膝外翻）","躯干过度前倾（髋起太快）","脚跟离地（踝背屈不足）","底部弹震借力"],
+    regression: "高脚杯深蹲", progression: "前蹲", alternative: "腿举",
+    contraindications: { knee: ["full_range"], lumbar: [] }
+  },
+  {
+    id: "EX003", name: "腿举", nameEn: "Leg Press",
+    pattern: "squat", primary: ["股四头肌","臀大肌"], secondary: ["腘绳肌","小腿"],
+    equipment: "machine", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "12-15", rest: 90, tempo: "2-0-1-0",
+    setup: ["调整座椅，背部贴紧靠背","双脚与肩同宽放在踏板上，脚尖微外展","膝盖弯曲至90度左右","双手握住两侧把手"],
+    execution: ["蹬踏板伸腿，不锁死膝关节","下放时控制速度，膝盖弯曲至90度","全程脚掌贴紧踏板","推起时呼气，下放时吸气"],
+    errors: ["膝盖锁死过度伸展","下放幅度不够","脚尖仅用前脚掌发力","推起速度过快借力"],
+    regression: "减少重量", progression: "单腿腿举", alternative: "高脚杯深蹲",
+    contraindications: { knee: [], lumbar: [] }
+  },
+  {
+    id: "EX004", name: "箭步蹲", nameEn: "Walking Lunge",
+    pattern: "squat", primary: ["股四头肌","臀大肌"], secondary: ["腘绳肌","核心"],
+    equipment: "dumbbell", difficulty: 2, minLevel: 1,
+    sets: 3, reps: "10-12/腿", rest: 90, tempo: "2-0-1-0",
+    setup: ["双脚并拢站立，双手持哑铃自然下垂","挺胸收腹，目视前方","选择足够空间向前迈步"],
+    execution: ["一只脚向前迈一大步","下蹲至前腿膝盖90度，后腿膝盖接近地面","前脚蹬地回到起始位置","交替进行"],
+    errors: ["前膝超过脚尖过多","躯干前倾","后膝撞击地面","步幅太小（变为蹲而非箭步）"],
+    regression: "固定箭步蹲", progression: "负重箭步走", alternative: "腿举",
+    contraindications: { knee: ["long_stride"], lumbar: [] }
+  },
+  {
+    id: "EX005", name: "保加利亚分腿蹲", nameEn: "Bulgarian Split Squat",
+    pattern: "squat", primary: ["股四头肌","臀大肌"], secondary: ["腘绳肌","核心"],
+    equipment: "dumbbell", difficulty: 3, minLevel: 2,
+    sets: 3, reps: "8-12/腿", rest: 90, tempo: "2-0-1-0",
+    setup: ["后脚搭在凳上，前脚向前迈一步","双手持哑铃自然下垂","前脚距离凳子约一步半","挺胸收腹"],
+    execution: ["前腿屈膝下蹲","后腿膝盖向地面靠近","下蹲至前腿大腿平行地面","前脚蹬地站起"],
+    errors: ["前膝内扣","前脚距离不当","躯干过度前倾","后腿借力过多"],
+    regression: "固定箭步蹲", progression: "杠铃保加利亚分腿蹲", alternative: "腿举",
+    contraindications: { knee: [], lumbar: [] }
+  },
+  {
+    id: "EX006", name: "徒手深蹲", nameEn: "Bodyweight Squat",
+    pattern: "squat", primary: ["股四头肌","臀大肌"], secondary: ["腘绳肌","核心"],
+    equipment: "bodyweight", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "15-20", rest: 60, tempo: "2-0-1-0",
+    setup: ["双脚与肩同宽，脚尖外展15-30度","双手前平举或交叉胸前","挺胸收腹"],
+    execution: ["屈髋屈膝下蹲","膝盖追踪脚尖方向","下蹲至大腿平行地面","蹬地站起"],
+    errors: ["膝盖内扣","脚跟离地","躯干过度前倾","下蹲深度不够"],
+    regression: "箱式深蹲", progression: "高脚杯深蹲", alternative: "腿举",
+    contraindications: { knee: [], lumbar: [] }
+  },
+
+  // ===== 铰链 Hinge =====
+  {
+    id: "EX010", name: "罗马尼亚硬拉", nameEn: "Romanian Deadlift",
+    pattern: "hinge", primary: ["腘绳肌","臀大肌"], secondary: ["竖脊肌","前臂"],
+    equipment: "barbell", difficulty: 3, minLevel: 1,
+    sets: 3, reps: "8-10", rest: 120, tempo: "2-0-1-0",
+    setup: ["双脚与髋同宽，微外展","杠铃过脚掌中段，膝盖微屈","双手正握，握距略宽于肩","肩胛骨微收，背部保持自然生理弯曲","核心收紧，胸部挺起"],
+    execution: ["臀部后推，髋关节折叠","杠铃贴大腿前侧下放","下放至小腿中部，感受腘绳肌拉伸","膝盖角度几乎不变","臀部前推，驱动髋部回到中立位"],
+    errors: ["弯腰弓背（脊柱屈曲）","杠铃远离身体","下蹲代替髋铰链","顶部过度后仰"],
+    regression: "哑铃罗马尼亚硬拉", progression: "传统硬拉", alternative: "壶铃摇摆",
+    contraindications: { lumbar: ["barbell_deadlift"] }
+  },
+  {
+    id: "EX011", name: "哑铃罗马尼亚硬拉", nameEn: "Dumbbell RDL",
+    pattern: "hinge", primary: ["腘绳肌","臀大肌"], secondary: ["竖脊肌","前臂"],
+    equipment: "dumbbell", difficulty: 2, minLevel: 1,
+    sets: 3, reps: "10-12", rest: 90, tempo: "2-0-1-0",
+    setup: ["双脚与髋同宽","双手持哑铃置于大腿前侧","膝盖微屈","背部保持自然生理弯曲","核心收紧"],
+    execution: ["臀部后推，哑铃沿大腿前侧下放","感受腘绳肌拉伸","下放至哑铃过膝盖","臀部前推站起"],
+    errors: ["弯腰弓背","膝盖过度弯曲","哑铃远离身体","顶部过度后仰"],
+    regression: "减少重量", progression: "罗马尼亚硬拉", alternative: "壶铃摇摆",
+    contraindications: { lumbar: [] }
+  },
+  {
+    id: "EX012", name: "壶铃摇摆", nameEn: "Kettlebell Swing",
+    pattern: "hinge", primary: ["臀大肌","腘绳肌"], secondary: ["核心","三角肌","前臂"],
+    equipment: "kettlebell", difficulty: 2, minLevel: 1,
+    sets: 4, reps: "15-20", rest: 60, tempo: "1-0-1-0",
+    setup: ["双脚略宽于肩，脚尖外展","壶铃置于身前地面","屈髋抓握壶铃","背部保持自然生理弯曲"],
+    execution: ["屈髋后摆壶铃至双腿之间","爆发性地髋部前推，将壶铃摆至胸部高度","全程依靠髋部驱动，非手臂","壶铃下落时屈髋缓冲"],
+    errors: ["用蹲代替铰链","手臂主动上举","背部弯曲","壶铃摆过高（超过肩部）"],
+    regression: "减少重量", progression: "单臂壶铃摇摆", alternative: "哑铃罗马尼亚硬拉",
+    contraindications: { lumbar: [], shoulder: [] }
+  },
+  {
+    id: "EX013", name: "臀桥", nameEn: "Glute Bridge",
+    pattern: "hinge", primary: ["臀大肌"], secondary: ["腘绳肌","核心"],
+    equipment: "bodyweight", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "15-20", rest: 60, tempo: "2-1-1-1",
+    setup: ["仰卧，双膝弯曲，双脚平放地面","双脚与髋同宽","双臂自然放在身体两侧"],
+    execution: ["臀部发力向上顶起","顶至膝盖-髋部-肩膀呈一条直线","顶部挤压臀部，停顿1秒","控制下放"],
+    errors: ["过度挺腰代替臀部发力","脚跟离地","顶部不收紧臀部","速度过快"],
+    regression: "减少组数", progression: "杠铃臀桥", alternative: "壶铃摇摆",
+    contraindications: { lumbar: [], knee: [] }
+  },
+  {
+    id: "EX014", name: "杠铃臀桥", nameEn: "Barbell Hip Thrust",
+    pattern: "hinge", primary: ["臀大肌"], secondary: ["腘绳肌","核心"],
+    equipment: "barbell", difficulty: 2, minLevel: 2,
+    sets: 4, reps: "8-12", rest: 90, tempo: "2-1-1-1",
+    setup: ["上背靠在凳子上边缘","杠铃置于髋部上方，垫毛巾或海绵","双脚平放地面，与髋同宽","下巴微收，目视前方"],
+    execution: ["臀部发力向上顶起杠铃","顶至膝盖-髋部-肩膀呈一条直线","顶部挤压臀部，停顿1秒","控制下放"],
+    errors: ["过度挺腰","颈部过度后仰","脚跟离地","速度过快借力"],
+    regression: "臀桥", progression: "单腿臀桥", alternative: "壶铃摇摆",
+    contraindications: { lumbar: [], knee: [] }
+  },
+
+  // ===== 推 Push - 水平推 =====
+  {
+    id: "EX020", name: "哑铃卧推", nameEn: "Dumbbell Bench Press",
+    pattern: "push", primary: ["胸大肌"], secondary: ["三角肌前束","肱三头肌"],
+    equipment: "dumbbell", difficulty: 2, minLevel: 1,
+    sets: 3, reps: "8-12", rest: 90, tempo: "2-0-1-0",
+    setup: ["仰卧于平凳，双脚踩实地面","肩胛骨后缩下沉，挺胸拱背","头部贴凳，目视正上方","哑铃位于胸部两侧，掌心朝前"],
+    execution: ["哑铃沿弧线下放至胸部两侧","肘部与躯干呈45-60度夹角","底部时哑铃不碰触胸部","推起时哑铃画弧向中间靠拢","顶部不碰撞哑铃"],
+    errors: ["肘部完全外展90度","手腕弯折","臀部离凳","底部弹震借力"],
+    regression: "器械推胸", progression: "杠铃卧推", alternative: "俯卧撑",
+    contraindications: { shoulder: ["wide_grip"], wrist: ["barbell_bp"] }
+  },
+  {
+    id: "EX021", name: "杠铃卧推", nameEn: "Barbell Bench Press",
+    pattern: "push", primary: ["胸大肌"], secondary: ["三角肌前束","肱三头肌"],
+    equipment: "barbell", difficulty: 3, minLevel: 2,
+    sets: 4, reps: "6-8", rest: 120, tempo: "2-0-1-0",
+    setup: ["仰卧于平凳，双脚踩实地面","肩胛骨后缩下沉，挺胸拱背","握距略宽于肩","杠铃位于眼睛正上方"],
+    execution: ["杠铃控制下放至胸部下沿（乳头位置）","肘部与躯干呈约60度","底部轻触胸部不弹起","推起至起始位置，不锁死肘部"],
+    errors: ["宽握（肩过度外展）","臀部离凳起桥","手腕弯折","杠铃弹胸借力"],
+    regression: "哑铃卧推", progression: "暂停卧推", alternative: "器械推胸",
+    contraindications: { shoulder: ["wide_grip"], wrist: ["barbell_bp"] }
+  },
+  {
+    id: "EX022", name: "器械推胸", nameEn: "Machine Chest Press",
+    pattern: "push", primary: ["胸大肌"], secondary: ["三角肌前束","肱三头肌"],
+    equipment: "machine", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "12-15", rest: 90, tempo: "2-0-1-0",
+    setup: ["调整座椅高度，把手与胸部齐平","背贴紧靠背","双脚踩实地面","握把手，掌心朝前"],
+    execution: ["推把手至手臂伸直不锁死","控制回放至胸部拉伸感","推起呼气，回放吸气","全程保持背部贴靠背"],
+    errors: ["推起速度过快","座椅高度不当","手腕弯折","含胸弓背"],
+    regression: "减少重量", progression: "哑铃卧推", alternative: "俯卧撑",
+    contraindications: { shoulder: [], wrist: [] }
+  },
+  {
+    id: "EX023", name: "哑铃上斜卧推", nameEn: "Incline Dumbbell Press",
+    pattern: "push", primary: ["胸大肌上束"], secondary: ["三角肌前束","肱三头肌"],
+    equipment: "dumbbell", difficulty: 2, minLevel: 2,
+    sets: 3, reps: "8-12", rest: 90, tempo: "2-0-1-0",
+    setup: ["凳子调至30-45度上斜","仰卧，双脚踩实地面","肩胛骨后缩下沉","哑铃位于胸部两侧"],
+    execution: ["哑铃沿弧线下放至上胸部","肘部与躯干呈45-60度","推起时哑铃画弧靠拢","顶部不碰撞"],
+    errors: ["角度过大变为肩推","肘部完全外展","臀部离凳","底部弹震"],
+    regression: "上斜器械推胸", progression: "上斜杠铃卧推", alternative: "哑铃卧推",
+    contraindications: { shoulder: ["wide_grip"], wrist: [] }
+  },
+  {
+    id: "EX024", name: "俯卧撑", nameEn: "Push-Up",
+    pattern: "push", primary: ["胸大肌"], secondary: ["三角肌前束","肱三头肌","核心"],
+    equipment: "bodyweight", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "8-15", rest: 60, tempo: "2-0-1-0",
+    setup: ["双手与肩同宽或略宽","身体从头到脚呈一条直线","核心收紧","脚尖着地"],
+    execution: ["控制下放至胸部接近地面","肘部与躯干呈45度","推起回到起始位置","全程保持身体一条线"],
+    errors: ["塌腰","撅臀","肘部完全外展","下放深度不够"],
+    regression: "跪姿俯卧撑", progression: "负重俯卧撑", alternative: "器械推胸",
+    contraindications: { wrist: ["pushup"], shoulder: [] }
+  },
+
+  // ===== 推 Push - 垂直推 =====
+  {
+    id: "EX030", name: "哑铃肩推", nameEn: "Dumbbell Shoulder Press",
+    pattern: "push", primary: ["三角肌"], secondary: ["肱三头肌","上斜方肌"],
+    equipment: "dumbbell", difficulty: 2, minLevel: 1,
+    sets: 3, reps: "8-12", rest: 90, tempo: "2-0-1-0",
+    setup: ["坐姿或站姿，背部挺直","哑铃起始位置在耳朵两侧","掌心朝前","核心收紧"],
+    execution: ["哑铃向上推过头顶","推至手臂伸直不锁死","控制下放至耳朵两侧","推起呼气，下放吸气"],
+    errors: ["过度弓腰","下放过低","手腕弯折","借力蹬腿"],
+    regression: "坐姿器械肩推", progression: "杠铃肩推", alternative: "阿诺德推举",
+    contraindications: { shoulder: ["behind_neck"], lumbar: [] }
+  },
+  {
+    id: "EX031", name: "杠铃肩推", nameEn: "Barbell Overhead Press",
+    pattern: "push", primary: ["三角肌"], secondary: ["肱三头肌","上斜方肌","核心"],
+    equipment: "barbell", difficulty: 3, minLevel: 2,
+    sets: 4, reps: "6-8", rest: 120, tempo: "2-0-1-0",
+    setup: ["站姿，双脚与肩同宽","杠铃起始位置在锁骨前方","握距略宽于肩","核心收紧，臀部夹紧"],
+    execution: ["杠铃推过头顶","推至手臂伸直不锁死","控制下放至锁骨位置","推起呼气，下放吸气"],
+    errors: ["过度弓腰代偿","颈部后仰","借力蹬腿","下放至胸部弹震"],
+    regression: "哑铃肩推", progression: "站姿杠铃推举", alternative: "器械肩推",
+    contraindications: { shoulder: ["behind_neck"], lumbar: [] }
+  },
+  {
+    id: "EX032", name: "器械肩推", nameEn: "Machine Shoulder Press",
+    pattern: "push", primary: ["三角肌"], secondary: ["肱三头肌"],
+    equipment: "machine", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "12-15", rest: 90, tempo: "2-0-1-0",
+    setup: ["调整座椅，把手与耳朵齐高","背贴靠背","握把手掌心朝前","核心收紧"],
+    execution: ["推把手至手臂伸直不锁死","控制回放至耳朵位置","推起呼气，回放吸气"],
+    errors: ["推起过快","座椅高度不当","过度弓背","手腕弯折"],
+    regression: "减少重量", progression: "哑铃肩推", alternative: "侧平举",
+    contraindications: { shoulder: [], lumbar: [] }
+  },
+  {
+    id: "EX033", name: "哑铃侧平举", nameEn: "Dumbbell Lateral Raise",
+    pattern: "push", primary: ["三角肌中束"], secondary: ["上斜方肌"],
+    equipment: "dumbbell", difficulty: 1, minLevel: 1,
+    sets: 4, reps: "12-15", rest: 60, tempo: "2-0-1-1",
+    setup: ["站姿，双脚与肩同宽","双手持哑铃置于身体两侧","微屈肘","核心收紧"],
+    execution: ["哑铃向两侧抬起至肩高","肘部略高于手腕","顶部停顿1秒","控制下放"],
+    errors: ["超过肩高（肩撞击）","借力摇晃","手腕高于肘部","下放过快"],
+    regression: "减少重量", progression: "绳索侧平举", alternative: "器械侧平举",
+    contraindications: { shoulder: ["upright_row"] }
+  },
+  {
+    id: "EX034", name: "面拉", nameEn: "Face Pull",
+    pattern: "pull", primary: ["三角肌后束"], secondary: ["菱形肌","斜方肌中下束"],
+    equipment: "cable", difficulty: 2, minLevel: 1,
+    sets: 3, reps: "12-15", rest: 60, tempo: "2-1-1-1",
+    setup: ["绳索调至面部高度","双手握绳索两端，掌心相对","站姿，核心收紧","双脚与肩同宽"],
+    execution: ["拉向面部（额头高度）","拉至绳索经过耳朵两侧","肘部外展，肩胛骨后缩","顶部挤压停顿1秒"],
+    errors: ["拉向胸部而非面部","重量过大借力","肘部下垂","无控制回放"],
+    regression: "减少重量", progression: "增加重量", alternative: "哑铃俯身飞鸟",
+    contraindications: { shoulder: [] }
+  },
+
+  // ===== 拉 Pull - 垂直拉 =====
+  {
+    id: "EX040", name: "高位下拉", nameEn: "Lat Pulldown",
+    pattern: "pull", primary: ["背阔肌"], secondary: ["肱二头肌","菱形肌"],
+    equipment: "cable", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "10-12", rest: 90, tempo: "2-0-1-0",
+    setup: ["调整座椅高度，大腿挡板固定","握距略宽于肩，掌心朝前","挺胸收腹","肩胛骨微下沉"],
+    execution: ["拉把手至上胸部（锁骨下方）","拉时肩胛骨先下沉后缩","下拉时呼气","控制回放，手臂完全伸展"],
+    errors: ["拉至胸部过低","身体过度后仰借力","回放过快","肩胛骨不参与"],
+    regression: "减少重量", progression: "引体向上（辅助）", alternative: "坐姿绳索划船",
+    contraindications: { shoulder: ["behind_neck"] }
+  },
+  {
+    id: "EX041", name: "引体向上（辅助）", nameEn: "Assisted Pull-Up",
+    pattern: "pull", primary: ["背阔肌"], secondary: ["肱二头肌","菱形肌"],
+    equipment: "machine", difficulty: 3, minLevel: 2,
+    sets: 3, reps: "6-10", rest: 120, tempo: "2-0-1-0",
+    setup: ["调整辅助重量","双手握杠，握距略宽于肩","掌心朝前","肩胛骨下沉"],
+    execution: ["拉身体向上至下巴过杠","拉时肩胛骨先下沉后缩","顶部停顿","控制下放至手臂完全伸展"],
+    errors: ["身体摆动借力","下巴不过杠","回放过快","肩胛骨不参与"],
+    regression: "高位下拉", progression: "引体向上（自重）", alternative: "高位下拉",
+    contraindications: { shoulder: ["behind_neck"] }
+  },
+
+  // ===== 拉 Pull - 水平拉 =====
+  {
+    id: "EX045", name: "哑铃划船", nameEn: "Dumbbell Row",
+    pattern: "pull", primary: ["背阔肌","菱形肌"], secondary: ["肱二头肌","核心"],
+    equipment: "dumbbell", difficulty: 2, minLevel: 1,
+    sets: 3, reps: "10-12", rest: 90, tempo: "2-0-1-0",
+    setup: ["单膝跪在凳上，对侧手撑凳","对侧脚踩地","哑铃自然下垂","背部平行地面"],
+    execution: ["拉哑铃至腰部两侧","肘部贴近躯干","顶部肩胛骨后缩挤压","控制下放至手臂完全伸展"],
+    errors: ["躯干旋转","拉至胸部过高","回放过快借力","躯干未平行地面"],
+    regression: "坐姿绳索划船", progression: "杠铃划船", alternative: "高位下拉",
+    contraindications: { lumbar: [] }
+  },
+  {
+    id: "EX046", name: "坐姿绳索划船", nameEn: "Seated Cable Row",
+    pattern: "pull", primary: ["背阔肌","菱形肌"], secondary: ["肱二头肌","三角肌后束"],
+    equipment: "cable", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "10-12", rest: 90, tempo: "2-0-1-0",
+    setup: ["坐在器械上，双脚踩踏板","膝盖微屈","握把手，背部挺直","挺胸收腹"],
+    execution: ["拉把手至腹部","肘部贴近躯干","顶部肩胛骨后缩","控制回放至手臂伸展"],
+    errors: ["躯干前后摆动","拉至胸部","回放过快","含胸弓背"],
+    regression: "减少重量", progression: "哑铃划船", alternative: "高位下拉",
+    contraindications: { lumbar: [] }
+  },
+  {
+    id: "EX047", name: "杠铃划船", nameEn: "Barbell Row",
+    pattern: "pull", primary: ["背阔肌","菱形肌"], secondary: ["肱二头肌","竖脊肌"],
+    equipment: "barbell", difficulty: 3, minLevel: 2,
+    sets: 4, reps: "6-8", rest: 120, tempo: "2-0-1-0",
+    setup: ["双脚与肩同宽","屈髋至躯干与地面呈45-70度","握距略宽于膝","背部保持自然生理弯曲"],
+    execution: ["拉杠铃至下腹部","肘部贴近躯干","顶部肩胛骨后缩","控制下放至手臂完全伸展"],
+    errors: ["躯干直立变为直立划船","弯腰弓背","拉至胸部","回放借力弹震"],
+    regression: "坐姿绳索划船", progression: "Pendlay划船", alternative: "哑铃划船",
+    contraindications: { lumbar: ["barbell_row"] }
+  },
+  {
+    id: "EX048", name: "胸支撑哑铃划船", nameEn: "Chest-Supported Dumbbell Row",
+    pattern: "pull", primary: ["背阔肌","菱形肌"], secondary: ["肱二头肌","三角肌后束"],
+    equipment: "dumbbell", difficulty: 2, minLevel: 1,
+    sets: 3, reps: "10-12", rest: 90, tempo: "2-0-1-0",
+    setup: ["俯卧在斜凳上（30度）","双手持哑铃自然下垂","胸部贴紧凳面","下巴微收"],
+    execution: ["拉哑铃至腰部两侧","肘部贴近躯干","顶部肩胛骨后缩","控制下放"],
+    errors: ["抬头过度","拉至胸部","回放过快","胸部离开凳面"],
+    regression: "减少重量", progression: "T杠划船", alternative: "坐姿绳索划船",
+    contraindications: { lumbar: [] }
+  },
+
+  // ===== 手臂 =====
+  {
+    id: "EX050", name: "哑铃弯举", nameEn: "Dumbbell Bicep Curl",
+    pattern: "pull", primary: ["肱二头肌"], secondary: ["前臂"],
+    equipment: "dumbbell", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "10-12", rest: 60, tempo: "3-0-1-1",
+    setup: ["站姿或坐姿","双手持哑铃自然下垂","掌心朝前","肘部贴紧身体两侧"],
+    execution: ["弯举哑铃至肩部","肘部固定不动","顶部停顿1秒","控制下放"],
+    errors: ["借力摇晃","肘部前后移动","下放过快","手腕弯折"],
+    regression: "减少重量", progression: "杠铃弯举", alternative: "绳索弯举",
+    contraindications: {}
+  },
+  {
+    id: "EX051", name: "锤式弯举", nameEn: "Hammer Curl",
+    pattern: "pull", primary: ["肱肌","肱二头肌"], secondary: ["前臂"],
+    equipment: "dumbbell", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "10-12", rest: 60, tempo: "3-0-1-1",
+    setup: ["站姿或坐姿","双手持哑铃自然下垂","掌心相对（中立握）","肘部贴紧身体两侧"],
+    execution: ["弯举哑铃至肩部","保持掌心相对","顶部停顿1秒","控制下放"],
+    errors: ["借力摇晃","肘部前后移动","手腕旋转","下放过快"],
+    regression: "减少重量", progression: "绳索锤式弯举", alternative: "哑铃弯举",
+    contraindications: {}
+  },
+  {
+    id: "EX052", name: "绳索下压", nameEn: "Cable Triceps Pushdown",
+    pattern: "push", primary: ["肱三头肌"], secondary: ["前臂"],
+    equipment: "cable", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "10-15", rest: 60, tempo: "3-0-1-1",
+    setup: ["站姿，双脚与肩同宽","绳索调至高位","双手握绳索或直杆","肘部贴紧身体两侧"],
+    execution: ["下压至手臂完全伸直","肘部固定不动","顶部停顿1秒收缩三头肌","控制回放至肘部90度"],
+    errors: ["肘部前后移动","借力下压","回放过快","身体前倾"],
+    regression: "减少重量", progression: "增加重量", alternative: "仰卧臂屈伸",
+    contraindications: {}
+  },
+  {
+    id: "EX053", name: "仰卧臂屈伸", nameEn: "Skull Crusher",
+    pattern: "push", primary: ["肱三头肌"], secondary: ["前臂"],
+    equipment: "dumbbell", difficulty: 2, minLevel: 1,
+    sets: 3, reps: "10-12", rest: 60, tempo: "3-0-1-0",
+    setup: ["仰卧于平凳","双手持一个哑铃或EZ杆","手臂伸直指向天花板","肘部朝向脚的方向"],
+    execution: ["屈肘将哑铃下放至额头","肘部固定不动","伸直手臂回到起始位置","顶部不锁死"],
+    errors: ["肘部外展","下放至额头过低","借力推举","手臂前后移动"],
+    regression: "绳索下压", progression: "EZ杆仰卧臂屈伸", alternative: "绳索下压",
+    contraindications: { elbow: [] }
+  },
+  {
+    id: "EX054", name: "双杠臂屈伸", nameEn: "Dips",
+    pattern: "push", primary: ["胸大肌下束","肱三头肌"], secondary: ["三角肌前束"],
+    equipment: "bodyweight", difficulty: 3, minLevel: 2,
+    sets: 3, reps: "8-12", rest: 90, tempo: "2-0-1-0",
+    setup: ["双手撑双杠","身体悬空","微屈膝","核心收紧"],
+    execution: ["屈肘下放身体","躯干微前倾（练胸）或垂直（练三头）","下放至肩部低于肘部","推起回到起始位置"],
+    errors: ["下放深度不够","肩部前倾过度","借力摆动","底部弹震"],
+    regression: "辅助双杠臂屈伸", progression: "负重双杠臂屈伸", alternative: "绳索下压",
+    contraindications: { shoulder: [] }
+  },
+
+  // ===== 核心 =====
+  {
+    id: "EX060", name: "平板支撑", nameEn: "Plank",
+    pattern: "carry", primary: ["核心"], secondary: ["腹直肌","腹横肌"],
+    equipment: "bodyweight", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "30-45秒", rest: 60, tempo: "持续",
+    setup: ["前臂支撑地面，肘部在肩膀正下方","身体从头到脚呈一条直线","核心收紧","双脚与肩同宽"],
+    execution: ["保持身体一条直线","臀部不塌不翘","呼吸均匀","目视地面"],
+    errors: ["塌腰","撅臀","头部下垂","臀部左右晃动"],
+    regression: "跪姿平板支撑", progression: "侧平板支撑", alternative: "死虫式",
+    contraindications: { wrist: ["pushup"] }
+  },
+  {
+    id: "EX061", name: "死虫式", nameEn: "Dead Bug",
+    pattern: "carry", primary: ["核心"], secondary: ["腹横肌"],
+    equipment: "bodyweight", difficulty: 1, minLevel: 1,
+    sets: 3, reps: "10-12/侧", rest: 45, tempo: "2-0-2-0",
+    setup: ["仰卧","双臂指向天花板","双膝弯曲90度抬起","腰部贴紧地面"],
+    execution: ["一侧手向后伸展，对侧腿向前伸展","腰部保持贴地","回到起始位置换边","全程核心收紧"],
+    errors: ["腰部离开地面","伸展不同步","屏气","速度过快"],
+    regression: "单腿交替", progression: "增加负重", alternative: "平板支撑",
+    contraindications: {}
+  },
+  {
+    id: "EX062", name: "悬垂举腿", nameEn: "Hanging Leg Raise",
+    pattern: "carry", primary: ["核心","腹直肌"], secondary: ["前臂","髋屈肌"],
+    equipment: "bodyweight", difficulty: 3, minLevel: 2,
+    sets: 3, reps: "10-15", rest: 60, tempo: "2-1-1-1",
+    setup: ["双手握杠悬垂","身体自然下垂","核心收紧","肩胛骨微下沉"],
+    execution: ["抬腿至大腿与地面平行或更高","控制下放","顶部停顿1秒","避免摆动"],
+    errors: ["借力摆动","下放过快","屏气","肩部紧张耸肩"],
+    regression: "仰卧举腿", progression: "悬垂 toes-to-bar", alternative: "仰卧举腿",
+    contraindications: { lumbar: [], shoulder: [] }
+  },
+  {
+    id: "EX063", name: "帕洛夫推", nameEn: "Pallof Press",
+    pattern: "rotation", primary: ["核心","腹斜肌"], secondary: ["腹横肌"],
+    equipment: "cable", difficulty: 2, minLevel: 1,
+    sets: 3, reps: "10-12/侧", rest: 45, tempo: "2-2-2-0",
+    setup: ["绳索调至胸部高度","侧对绳索站立","双手握把手置于胸前","站姿，双脚与肩同宽"],
+    execution: ["双手向前推把手至手臂伸直","保持身体不旋转（抗旋转）","保持2秒","收回至胸前"],
+    errors: ["身体随绳索旋转","推伸不完整","重量过大","脚步移动"],
+    regression: "减少重量", progression: "增加重量", alternative: "侧平板支撑",
+    contraindications: {}
+  },
+  {
+    id: "EX064", name: "仰卧举腿", nameEn: "Lying Leg Raise",
+    pattern: "carry", primary: ["核心","腹直肌下束"], secondary: ["髋屈肌"],
+    equipment: "bodyweight", difficulty: 2, minLevel: 1,
+    sets: 3, reps: "12-15", rest: 45, tempo: "2-1-1-1",
+    setup: ["仰卧","双手放在身体两侧或臀部下方","双腿伸直","腰部贴紧地面"],
+    execution: ["抬腿至与地面垂直","控制下放至离地面10cm","顶部停顿1秒","腰部保持贴地"],
+    errors: ["腰部离开地面","下放过快触地","屈膝过多","借力摆动"],
+    regression: "单腿交替", progression: "悬垂举腿", alternative: "死虫式",
+    contraindications: { lumbar: [] }
+  },
+
+  // ===== 小腿 =====
+  {
+    id: "EX070", name: "站姿提踵", nameEn: "Standing Calf Raise",
+    pattern: "push", primary: ["腓肠肌","比目鱼肌"], secondary: [],
+    equipment: "dumbbell", difficulty: 1, minLevel: 1,
+    sets: 4, reps: "15-20", rest: 60, tempo: "2-1-1-1",
+    setup: ["站姿，双脚与肩同宽","前脚掌站在台阶边缘","手持哑铃或杠铃","脚跟悬空"],
+    execution: ["脚跟向上抬起至最高点","顶部停顿1秒","控制下放至脚跟低于台阶","全程脚趾不内扣外翻"],
+    errors: ["下放深度不够","顶部不停顿","速度过快弹震","脚尖内扣或外翻"],
+    regression: "坐姿提踵", progression: "单腿提踵", alternative: "坐姿提踵",
+    contraindications: {}
+  },
+  {
+    id: "EX071", name: "坐姿提踵", nameEn: "Seated Calf Raise",
+    pattern: "push", primary: ["比目鱼肌"], secondary: ["腓肠肌"],
+    equipment: "machine", difficulty: 1, minLevel: 1,
+    sets: 4, reps: "15-20", rest: 60, tempo: "2-1-1-1",
+    setup: ["坐姿，前脚掌放在踏板上","膝盖弯曲90度","大腿挡板压在膝盖上方","脚跟悬空"],
+    execution: ["脚跟向上抬起至最高点","顶部停顿1秒","控制下放","全程保持膝盖弯曲"],
+    errors: ["下放深度不够","顶部不停顿","速度过快","膝盖伸直（变为站姿模式）"],
+    regression: "减少重量", progression: "增加重量", alternative: "站姿提踵",
+    contraindications: {}
+  },
+
+  // ===== Level 3 高级动作 =====
+  {
+    id: "EX080", name: "传统硬拉", nameEn: "Conventional Deadlift",
+    pattern: "hinge", primary: ["臀大肌","腘绳肌","竖脊肌"], secondary: ["股四头肌","前臂","上斜方肌"],
+    equipment: "barbell", difficulty: 4, minLevel: 3,
+    sets: 4, reps: "3-5", rest: 180, tempo: "1-0-1-0",
+    setup: ["杠铃过脚掌中段","双脚与髋同宽","屈髋屈膝抓握杠铃","双手正握或正反握","背部自然生理弯曲","肩部在杠铃正上方"],
+    execution: ["蹬地起身，杠铃贴身","髋部和膝盖同时伸展","过膝后髋部前推锁定","控制下放至地面"],
+    errors: ["弯腰弓背","杠铃远离身体","髋起太快（早安式）","下放过快砸地"],
+    regression: "罗马尼亚硬拉", progression: "赤字硬拉", alternative: "六角杠铃硬拉",
+    contraindications: { lumbar: ["barbell_deadlift"], hypertension: ["1rm_test"] }
+  },
+  {
+    id: "EX081", name: "前蹲", nameEn: "Front Squat",
+    pattern: "squat", primary: ["股四头肌","臀大肌"], secondary: ["核心","上背"],
+    equipment: "barbell", difficulty: 4, minLevel: 3,
+    sets: 4, reps: "5-6", rest: 180, tempo: "2-0-1-0",
+    setup: ["杠铃放置于三角肌前束上方","双臂交叉抱杠或翻握","双脚与肩同宽","核心极度收紧","肘部高抬"],
+    execution: ["屈髋屈膝下蹲","躯干比高杠更垂直","下蹲至大腿平行或略低","蹬地站起，肘部保持高抬"],
+    errors: ["肘部下沉导致杠铃前滑","躯干过度前倾","核心未收紧","膝盖内扣"],
+    regression: "高杠深蹲", progression: "暂停前蹲", alternative: "腿举",
+    contraindications: { knee: [], wrist: [] }
+  },
+  {
+    id: "EX082", name: "跳箱", nameEn: "Box Jump",
+    pattern: "squat", primary: ["股四头肌","臀大肌"], secondary: ["腘绳肌","小腿"],
+    equipment: "bodyweight", difficulty: 3, minLevel: 3,
+    sets: 5, reps: "5", rest: 180, tempo: "爆发",
+    setup: ["选择合适高度的跳箱","站在跳箱前一步距离","双脚与肩同宽","准备姿势微屈膝屈髋"],
+    execution: ["快速下蹲蓄力","爆发性地蹬地起跳","双脚轻落在跳箱上","站起后走下或跳下（不要直接跳下）"],
+    errors: ["落地震动过大","箱子过高导致落地深蹲","膝盖内扣","落地脚跟不着箱"],
+    regression: "减少高度", progression: "增加高度", alternative: "腿举",
+    contraindications: { knee: ["box_jump"], lumbar: [] }
+  },
+  {
+    id: "EX083", name: "药球砸地", nameEn: "Medicine Ball Slam",
+    pattern: "squat", primary: ["腹直肌","背阔肌"], secondary: ["臀大肌","三角肌"],
+    equipment: "bodyweight", difficulty: 3, minLevel: 3,
+    sets: 5, reps: "5", rest: 180, tempo: "爆发",
+    setup: ["站姿，双脚与肩同宽","双手持药球","核心收紧"],
+    execution: ["举药球过头顶","全身发力将药球猛砸向地面","砸时呼气核心发力","捡起药球重复"],
+    errors: ["仅用手臂力量","砸地力度不够","核心未参与","脚跟离地"],
+    regression: "减少重量", progression: "增加重量", alternative: "壶铃摇摆",
+    contraindications: { lumbar: [], hypertension: ["valsalva"] }
+  },
+  {
+    id: "EX084", name: "六角杠铃硬拉", nameEn: "Trap Bar Deadlift",
+    pattern: "hinge", primary: ["股四头肌","臀大肌","腘绳肌"], secondary: ["竖脊肌","上斜方肌","前臂"],
+    equipment: "barbell", difficulty: 3, minLevel: 2,
+    sets: 4, reps: "5-6", rest: 180, tempo: "1-0-1-0",
+    setup: ["站在六角杠铃中央","双脚与肩同宽","屈髋屈膝握把手","背部自然生理弯曲","肩部在把手正上方"],
+    execution: ["蹬地起身","杠铃沿身体上升","过膝后髋部前推","控制下放"],
+    errors: ["弯腰弓背","臀部起太快","膝盖内扣","下放过快"],
+    regression: "减少重量", progression: "增加重量", alternative: "传统硬拉",
+    contraindications: { lumbar: [], hypertension: ["1rm_test"] }
+  },
+
+  // ===== 拉伸/热身动作 =====
+  {
+    id: "EX090", name: "猫牛式", nameEn: "Cat-Cow Stretch",
+    pattern: "rotation", primary: ["竖脊肌"], secondary: ["核心"],
+    equipment: "bodyweight", difficulty: 1, minLevel: 1,
+    sets: 2, reps: "8-10", rest: 0, tempo: "3-3",
+    setup: ["四点支撑，手在肩下方，膝在髋下方","背部中立"],
+    execution: ["吸气时腹部下沉，抬头翘臀（牛式）","呼气时弓背低头（猫式）","缓慢交替","每个位置停留2-3秒"],
+    errors: ["速度过快","活动范围不够","手臂弯曲","呼吸不配合"],
+    regression: "减少次数", progression: "增加次数", alternative: "婴儿式",
+    contraindications: { wrist: ["pushup"] }
+  },
+  {
+    id: "EX091", name: "髋屈肌拉伸", nameEn: "Hip Flexor Stretch",
+    pattern: "rotation", primary: ["髂腰肌"], secondary: ["股直肌"],
+    equipment: "bodyweight", difficulty: 1, minLevel: 1,
+    sets: 2, reps: "30秒/侧", rest: 0, tempo: "持续",
+    setup: ["弓步姿势，后膝跪地","前脚在前，后腿在后","躯干直立","核心收紧"],
+    execution: ["重心前移，感受后腿髋屈肌拉伸","保持30秒","换边","保持呼吸"],
+    errors: ["躯干前倾","后腿髋部前推不够","前膝超过脚尖","屏气"],
+    regression: "减少时间", progression: "增加时间", alternative: "沙发拉伸",
+    contraindications: { knee: [] }
+  },
+  {
+    id: "EX092", name: "胸椎旋转", nameEn: "Thoracic Rotation",
+    pattern: "rotation", primary: ["斜方肌","菱形肌"], secondary: ["胸椎"],
+    equipment: "bodyweight", difficulty: 1, minLevel: 1,
+    sets: 2, reps: "8-10/侧", rest: 0, tempo: "3-3",
+    setup: ["侧卧，双膝弯曲90度叠放","上方手臂向前伸直","头部枕在垫子上"],
+    execution: ["上方手臂向后方画弧打开","胸椎旋转，手臂尽量触地","回到起始位置","保持膝盖不离开"],
+    errors: ["膝盖分开","骨盆跟着旋转","速度过快","手臂打开不够"],
+    regression: "减少幅度", progression: "增加幅度", alternative: "猫牛式",
+    contraindications: { lumbar: [] }
+  },
+  {
+    id: "EX093", name: "90/90髋关节拉伸", nameEn: "90/90 Hip Stretch",
+    pattern: "rotation", primary: ["臀肌","髋关节"], secondary: ["腘绳肌"],
+    equipment: "bodyweight", difficulty: 2, minLevel: 1,
+    sets: 2, reps: "30秒/侧", rest: 0, tempo: "持续",
+    setup: ["坐姿，前腿屈膝90度在前","后腿屈膝90度在侧","躯干直立","双手撑地"],
+    execution: ["重心前倾向前腿","感受臀部拉伸","保持30秒","换边"],
+    errors: ["躯干过度前倾代偿","后腿角度不对","膝盖离开地面","屏气"],
+    regression: "减少时间", progression: "增加时间", alternative: "髋屈肌拉伸",
+    contraindications: { knee: [] }
+  }
+];
+
+// 动作库查找函数
+function findExercise(id) {
+  return EXERCISE_LIBRARY.find(function(e) { return e.id === id; });
+}
+
+// 按运动模式筛选
+function findByPattern(pattern, minLevel, equipment) {
+  return EXERCISE_LIBRARY.filter(function(e) {
+    if (e.pattern !== pattern) return false;
+    if (minLevel && e.minLevel > minLevel) return false;
+    return true;
+  });
+}
+
+// 按肌群筛选
+function findByMuscle(muscle, minLevel) {
+  return EXERCISE_LIBRARY.filter(function(e) {
+    if (e.primary.indexOf(muscle) < 0 && e.secondary.indexOf(muscle) < 0) return false;
+    if (minLevel && e.minLevel > minLevel) return false;
+    return true;
+  });
+}
+
+// ===== exercise-db.js 内联结束 =====
+
+// ===== plan-engine.js 内联开始 =====
+// 健身搭子 - 计划生成引擎 v1.0
+
+// 分化模板
+var SPLIT_TEMPLATES = {
+  2: { type: 'fullbody', days: ['全身A', '全身B'] },
+  3: { type: 'fullbody', days: ['全身A', '全身B', '全身C'] },
+  4: { type: 'upperLower', days: ['上半身A', '下半身A', '上半身B', '下半身B'] },
+  5: { type: 'ppl', days: ['推Push', '拉Pull', '腿Legs', '上半身', '下半身'] },
+  6: { type: 'ppl', days: ['推Push', '拉Pull', '腿Legs', '推Push', '拉Pull', '腿Legs'] }
+};
+
+// Level 1 全身训练模板
+var LEVEL1_TEMPLATES = {
+  '全身A': [
+    { exerciseId: 'EX001', order: 1, sets: 3, reps: '12-15', rest: 90, note: '主项：下肢' },
+    { exerciseId: 'EX020', order: 2, sets: 3, reps: '12-15', rest: 90, note: '主项：胸' },
+    { exerciseId: 'EX045', order: 3, sets: 3, reps: '12-15', rest: 90, note: '主项：背' },
+    { exerciseId: 'EX030', order: 4, sets: 3, reps: '12-15', rest: 60, note: '辅助：肩' },
+    { exerciseId: 'EX011', order: 5, sets: 3, reps: '12-15', rest: 90, note: '辅助：后链' },
+    { exerciseId: 'EX060', order: 6, sets: 3, reps: '30-45秒', rest: 60, note: '核心' }
+  ],
+  '全身B': [
+    { exerciseId: 'EX003', order: 1, sets: 3, reps: '12-15', rest: 90, note: '主项：下肢' },
+    { exerciseId: 'EX022', order: 2, sets: 3, reps: '12-15', rest: 90, note: '主项：胸' },
+    { exerciseId: 'EX040', order: 3, sets: 3, reps: '12-15', rest: 90, note: '主项：背' },
+    { exerciseId: 'EX033', order: 4, sets: 3, reps: '15-20', rest: 60, note: '辅助：肩中束' },
+    { exerciseId: 'EX052', order: 5, sets: 3, reps: '12-15', rest: 60, note: '辅助：三头' },
+    { exerciseId: 'EX050', order: 6, sets: 3, reps: '12-15', rest: 60, note: '辅助：二头' }
+  ],
+  '全身C': [
+    { exerciseId: 'EX004', order: 1, sets: 3, reps: '10-12/腿', rest: 90, note: '主项：下肢' },
+    { exerciseId: 'EX024', order: 2, sets: 3, reps: '8-15', rest: 60, note: '主项：胸' },
+    { exerciseId: 'EX046', order: 3, sets: 3, reps: '10-12', rest: 90, note: '主项：背' },
+    { exerciseId: 'EX013', order: 4, sets: 3, reps: '15-20', rest: 60, note: '辅助：臀' },
+    { exerciseId: 'EX034', order: 5, sets: 3, reps: '12-15', rest: 60, note: '辅助：肩后束' },
+    { exerciseId: 'EX061', order: 6, sets: 3, reps: '10-12/侧', rest: 45, note: '核心' }
+  ]
+};
+
+// Level 2 PPL模板
+var LEVEL2_TEMPLATES = {
+  '推Push': [
+    { exerciseId: 'EX021', order: 1, sets: 4, reps: '6-8', rest: 120, note: '主项：胸' },
+    { exerciseId: 'EX023', order: 2, sets: 3, reps: '8-12', rest: 90, note: '辅助：上胸' },
+    { exerciseId: 'EX030', order: 3, sets: 3, reps: '8-12', rest: 90, note: '主项：肩' },
+    { exerciseId: 'EX022', order: 4, sets: 3, reps: '12-15', rest: 60, note: '辅助：胸飞鸟' },
+    { exerciseId: 'EX033', order: 5, sets: 4, reps: '12-15', rest: 60, note: '辅助：肩中束' },
+    { exerciseId: 'EX052', order: 6, sets: 3, reps: '10-15', rest: 60, note: '辅助：三头' },
+    { exerciseId: 'EX053', order: 7, sets: 3, reps: '10-12', rest: 60, note: '辅助：三头' }
+  ],
+  '拉Pull': [
+    { exerciseId: 'EX047', order: 1, sets: 4, reps: '6-8', rest: 120, note: '主项：背' },
+    { exerciseId: 'EX040', order: 2, sets: 3, reps: '8-12', rest: 90, note: '辅助：背' },
+    { exerciseId: 'EX046', order: 3, sets: 3, reps: '10-12', rest: 90, note: '辅助：中背' },
+    { exerciseId: 'EX034', order: 4, sets: 3, reps: '12-15', rest: 60, note: '辅助：肩后束' },
+    { exerciseId: 'EX050', order: 5, sets: 3, reps: '10-12', rest: 60, note: '辅助：二头' },
+    { exerciseId: 'EX051', order: 6, sets: 3, reps: '10-12', rest: 60, note: '辅助：肱肌' }
+  ],
+  '腿Legs': [
+    { exerciseId: 'EX002', order: 1, sets: 4, reps: '6-8', rest: 180, note: '主项：下肢' },
+    { exerciseId: 'EX010', order: 2, sets: 3, reps: '8-10', rest: 120, note: '辅助：后链' },
+    { exerciseId: 'EX003', order: 3, sets: 3, reps: '10-12', rest: 90, note: '辅助：下肢' },
+    { exerciseId: 'EX005', order: 4, sets: 3, reps: '8-12/腿', rest: 90, note: '辅助：单腿' },
+    { exerciseId: 'EX070', order: 5, sets: 4, reps: '15-20', rest: 60, note: '小腿' },
+    { exerciseId: 'EX062', order: 6, sets: 3, reps: '10-15', rest: 60, note: '核心' }
+  ],
+  '上半身A': [
+    { exerciseId: 'EX021', order: 1, sets: 4, reps: '6-8', rest: 120, note: '主项：胸' },
+    { exerciseId: 'EX047', order: 2, sets: 4, reps: '6-8', rest: 120, note: '主项：背' },
+    { exerciseId: 'EX030', order: 3, sets: 3, reps: '8-12', rest: 90, note: '主项：肩' },
+    { exerciseId: 'EX045', order: 4, sets: 3, reps: '10-12', rest: 90, note: '辅助：背' },
+    { exerciseId: 'EX033', order: 5, sets: 3, reps: '12-15', rest: 60, note: '辅助：肩' },
+    { exerciseId: 'EX050', order: 6, sets: 3, reps: '10-12', rest: 60, note: '辅助：二头' },
+    { exerciseId: 'EX052', order: 7, sets: 3, reps: '10-15', rest: 60, note: '辅助：三头' }
+  ],
+  '下半身A': [
+    { exerciseId: 'EX002', order: 1, sets: 4, reps: '6-8', rest: 180, note: '主项：下肢' },
+    { exerciseId: 'EX010', order: 2, sets: 3, reps: '8-10', rest: 120, note: '主项：后链' },
+    { exerciseId: 'EX005', order: 3, sets: 3, reps: '8-12/腿', rest: 90, note: '辅助：单腿' },
+    { exerciseId: 'EX014', order: 4, sets: 3, reps: '8-12', rest: 90, note: '辅助：臀' },
+    { exerciseId: 'EX070', order: 5, sets: 4, reps: '15-20', rest: 60, note: '小腿' },
+    { exerciseId: 'EX064', order: 6, sets: 3, reps: '12-15', rest: 45, note: '核心' }
+  ],
+  '上半身B': [
+    { exerciseId: 'EX020', order: 1, sets: 4, reps: '8-12', rest: 90, note: '主项：胸' },
+    { exerciseId: 'EX040', order: 2, sets: 4, reps: '8-12', rest: 90, note: '主项：背' },
+    { exerciseId: 'EX031', order: 3, sets: 3, reps: '6-8', rest: 120, note: '主项：肩' },
+    { exerciseId: 'EX023', order: 4, sets: 3, reps: '8-12', rest: 90, note: '辅助：上胸' },
+    { exerciseId: 'EX048', order: 5, sets: 3, reps: '10-12', rest: 90, note: '辅助：背' },
+    { exerciseId: 'EX051', order: 6, sets: 3, reps: '10-12', rest: 60, note: '辅助：二头' },
+    { exerciseId: 'EX053', order: 7, sets: 3, reps: '10-12', rest: 60, note: '辅助：三头' }
+  ],
+  '下半身B': [
+    { exerciseId: 'EX002', order: 1, sets: 4, reps: '6-8', rest: 180, note: '主项：下肢' },
+    { exerciseId: 'EX011', order: 2, sets: 3, reps: '10-12', rest: 90, note: '辅助：后链' },
+    { exerciseId: 'EX003', order: 3, sets: 3, reps: '10-12', rest: 90, note: '辅助：下肢' },
+    { exerciseId: 'EX013', order: 4, sets: 3, reps: '15-20', rest: 60, note: '辅助：臀' },
+    { exerciseId: 'EX071', order: 5, sets: 4, reps: '15-20', rest: 60, note: '小腿' },
+    { exerciseId: 'EX063', order: 6, sets: 3, reps: '10-12/侧', rest: 45, note: '核心' }
+  ]
+};
+
+// 等级判定
+function determineLevel(profile) {
+  var months = profile.experienceMonths || 0;
+  var level;
+  if (months < 6) level = 1;
+  else if (months < 18) level = 2;
+  else level = 3;
+
+  // 交叉验证
+  if (profile.squat1RM && profile.bodyweight) {
+    var ratio = profile.squat1RM / profile.bodyweight;
+    if (level === 1 && ratio >= 1.0 && months >= 3) level = 2;
+    if (level === 2 && ratio >= 1.5 && months >= 12) level = 3;
+  }
+  return level;
+}
+
+// 伤病过滤
+function filterByContraindications(exerciseIds, conditions) {
+  return exerciseIds.filter(function(id) {
+    var ex = findExercise(id);
+    if (!ex || !ex.contraindications) return true;
+    for (var area in conditions) {
+      if (conditions[area] && ex.contraindications[area]) {
+        var contraindList = ex.contraindications[area];
+        if (contraindList && contraindList.length > 0) {
+          // 有伤病且有禁忌标记 -> 排除该动作
+          return false;
+        }
+      }
+    }
+    return true;
+  });
+}
+
+function findExerciseByName(name) {
+  return EXERCISE_LIBRARY.find(function(e) { return e.name === name; });
+}
+
+// 获取训练模板
+function getDayTemplate(dayName, level) {
+  if (level === 1) {
+    return LEVEL1_TEMPLATES[dayName] || LEVEL1_TEMPLATES['全身A'];
+  } else {
+    return LEVEL2_TEMPLATES[dayName] || LEVEL2_TEMPLATES['推Push'];
+  }
+}
+
+// 查找同模式、同主肌群的替代动作
+function findAlternative(exerciseId, level) {
+  var ex = findExercise(exerciseId);
+  if (!ex) return exerciseId;
+
+  // 同pattern + 同主肌群 + 同equipment + 同难度等级
+  var candidates = EXERCISE_LIBRARY.filter(function(e) {
+    return e.id !== exerciseId &&
+           e.pattern === ex.pattern &&
+           e.primary.join(',') === ex.primary.join(',') &&
+           e.minLevel <= level &&
+           e.difficulty <= level + 1;
+  });
+
+  if (candidates.length === 0) {
+    // 降级：同pattern即可
+    candidates = EXERCISE_LIBRARY.filter(function(e) {
+      return e.id !== exerciseId && e.pattern === ex.pattern && e.minLevel <= level;
+    });
+  }
+
+  if (candidates.length === 0) return exerciseId;
+  return candidates[Math.floor(Math.random() * candidates.length)].id;
+}
+
+// 随机替换模板中的部分动作（主项保留，辅助项随机替换）
+function shuffleTemplate(template, level) {
+  return template.map(function(ex) {
+    // 主项（order 1-2）保留不变，辅助项有50%概率替换
+    if (ex.order <= 2) return ex;
+    if (Math.random() < 0.5) return ex;
+
+    var altId = findAlternative(ex.exerciseId, level);
+    if (altId === ex.exerciseId) return ex;
+
+    var altEx = findExercise(altId);
+    if (!altEx) return ex;
+
+    // 保留原模板的组数/次数/休息，只替换动作ID和note
+    return {
+      exerciseId: altId,
+      order: ex.order,
+      sets: ex.sets,
+      reps: ex.reps,
+      rest: ex.rest,
+      note: ex.note.replace(/：.*/, '：' + altEx.primary.join('·'))
+    };
+  });
+}
+
+// 生成周计划
+function generatePlan(profile) {
+  var level = determineLevel(profile);
+  var split = SPLIT_TEMPLATES[profile.daysPerWeek] || SPLIT_TEMPLATES[3];
+  var weekDays = ['第1天', '第2天', '第3天', '第4天', '第5天', '第6天', '第7天'];
+  
+  // 安排训练日和休息日
+  var dayPlan = [];
+  var trainingDays = split.days;
+  var restCount = 7 - trainingDays.length;
+  
+  // 训练日分配策略
+  var dayPattern;
+  if (trainingDays.length === 2) {
+    dayPattern = [0, 3]; // 第1天、第4天
+  } else if (trainingDays.length === 3) {
+    dayPattern = [0, 2, 4]; // 第1、3、5天
+  } else if (trainingDays.length === 4) {
+    dayPattern = [0, 1, 3, 4]; // 第1、2、4、5天
+  } else if (trainingDays.length === 5) {
+    dayPattern = [0, 1, 2, 3, 4]; // 第1-5天
+  } else {
+    dayPattern = [0, 1, 2, 3, 4, 5]; // 第1-6天
+  }
+  
+  var templateIndex = 0;
+  for (var i = 0; i < 7; i++) {
+    if (dayPattern.indexOf(i) >= 0 && templateIndex < trainingDays.length) {
+      var dayName = trainingDays[templateIndex % trainingDays.length];
+      var template = getDayTemplate(dayName, level);
+      var shuffled = shuffleTemplate(template, level);
+      dayPlan.push({
+        dayName: weekDays[i],
+        dayIndex: i,
+        type: dayName,
+        isRest: false,
+        exercises: JSON.parse(JSON.stringify(shuffled))
+      });
+      templateIndex++;
+    } else {
+      dayPlan.push({
+        dayName: weekDays[i],
+        dayIndex: i,
+        type: '休息',
+        isRest: true,
+        exercises: []
+      });
+    }
+  }
+  
+  return {
+    id: 'plan_' + Date.now(),
+    version: '1.0',
+    level: level,
+    splitType: split.type,
+    daysPerWeek: profile.daysPerWeek,
+    createdAt: new Date().toISOString(),
+    weekPlan: dayPlan,
+    profile: profile,
+    cycleWeek: 1,          // 当前周期第几周 (1-4)
+    cycleStart: new Date().toISOString(),  // 周期开始日期
+    weekStartDate: new Date().toISOString(), // 当前周开始日期
+    cycleCount: 0,         // 已完成的完整周期数
+    trackOverride: null,   // 手动选择的路线（null=自动匹配，0/1/2=手动指定）
+    completedDays: [],     // 本周已完成的训练日 idx
+    skippedDays: []        // 本周请假的训练日 idx（顺延到下周）
+  };
+}
+
+// 重量推荐算法
+function recommendWeight(lastLog, exercise, level) {
+  if (!lastLog || !lastLog.sets || lastLog.sets.length === 0) {
+    // 无历史记录 -> 给保守起始重量
+    var startWeight = exercise.equipment === 'barbell' ? 20 :
+                      exercise.equipment === 'dumbbell' ? 5 :
+                      exercise.equipment === 'machine' ? 20 : 0;
+    return {
+      weight: startWeight,
+      targetReps: exercise.reps.split('-')[0],
+      message: '首次尝试，建议从轻重量开始，注重动作质量'
+    };
+  }
+  
+  var validSets = lastLog.sets.filter(function(s) { return s.weight != null && !isNaN(s.weight); });
+  if (validSets.length === 0) {
+    // 有记录但没填重量 -> 给保守起始重量
+    var fallbackWeight = exercise.equipment === 'barbell' ? 20 :
+                         exercise.equipment === 'dumbbell' ? 5 :
+                         exercise.equipment === 'machine' ? 20 : 0;
+    return {
+      weight: fallbackWeight,
+      targetReps: exercise.reps.split('-')[0],
+      message: '上次未记录重量，建议从轻重量开始重新校准'
+    };
+  }
+  var lastWeight = validSets[0].weight;
+  var lastReps = validSets.map(function(s) { return s.reps != null ? s.reps : 0; });
+  var repRange = exercise.reps.split('-').map(function(n) { return parseInt(n); });
+  if (repRange.length === 1) {
+    repRange = [parseInt(exercise.reps), parseInt(exercise.reps)];
+  }
+  var bottom = repRange[0], top = repRange[1] || repRange[0];
+  
+  var allHitTop = lastReps.every(function(r) { return r >= top; });
+  var allHitBottom = lastReps.every(function(r) { return r >= bottom; });
+  var anyMissed = lastReps.some(function(r) { return r < bottom; });
+  
+  if (allHitTop) {
+    var increment = exercise.equipment === 'dumbbell' ? 2.5 :
+                    exercise.equipment === 'barbell' ? 2.5 : 5;
+    return {
+      weight: lastWeight + increment,
+      targetReps: bottom,
+      message: '上次每组都达到' + top + '次，加重' + increment + 'kg！目标' + bottom + '次起'
+    };
+  } else if (allHitBottom) {
+    var minReps = Math.min.apply(null, lastReps);
+    return {
+      weight: lastWeight,
+      targetReps: minReps + 1,
+      message: '保持重量，每组多做1次'
+    };
+  } else if (anyMissed) {
+    if (lastLog.consecutiveFail >= 2) {
+      return {
+        weight: Math.round(lastWeight * 0.9),
+        targetReps: bottom,
+        message: '连续2次未完成，降重10%重新积累'
+      };
+    } else {
+      return {
+        weight: lastWeight,
+        targetReps: bottom,
+        message: '保持重量，继续尝试完成目标次数'
+      };
+    }
+  }
+  
+  return { weight: lastWeight, targetReps: bottom, message: '保持上次设定' };
+}
+
+// 1RM估算
+function estimate1RM(weight, reps) {
+  if (reps <= 1) return weight;
+  var epley = weight * (1 + reps / 30);
+  var brzycki = weight * 36 / (37 - reps);
+  return Math.round((epley + brzycki) / 2);
+}
+
+// 练后营养建议（按时段，使用匹配套餐）
+function generateNutritionAdvice(trainingData, bodyweight, timeSlot) {
+  if (!bodyweight) bodyweight = 60;
+  timeSlot = timeSlot || 'noon';
+  var type = trainingData.type || '';
+  // 力量训练类型：含推/拉/腿/全身/上半身/下半身 均为力量训练
+  var isStrength = type.indexOf('推') >= 0 || type.indexOf('拉') >= 0 || type.indexOf('腿') >= 0 ||
+                   type.indexOf('全身') >= 0 || type.indexOf('上半身') >= 0 || type.indexOf('下半身') >= 0;
+  
+  var proteinPerKg, carbPerKg;
+  if (isStrength) {
+    proteinPerKg = 0.35;
+    carbPerKg = 0.9;
+  } else {
+    proteinPerKg = 0.25;
+    carbPerKg = 1.0;
+  }
+  
+  var protein = Math.round(bodyweight * proteinPerKg);
+  var carb = Math.round(bodyweight * carbPerKg);
+
+  // 晚间碳水减量
+  var displayCarb = carb;
+  var waterStr = Math.round(bodyweight * 0.5) * 10 + 'ml';
+  var timingStr = '训练后30-60分钟内进食';
+  if (timeSlot === 'evening') {
+    displayCarb = Math.round(carb * 0.6);
+    waterStr += '（睡前1小时停止大量饮水）';
+    timingStr = '练完30分钟内吃，睡前1小时吃完';
+  } else if (timeSlot === 'early') {
+    timingStr = '练完30分钟内吃，替代早餐';
+  }
+
+  var timingMap = {
+    early: '练完30分钟内吃，替代早餐',
+    noon: '训练后30-60分钟内进食',
+    evening: '练完30分钟内吃，睡前1小时吃完'
+  };
+  var waterMap = {
+    early: Math.round(bodyweight * 0.5) * 10 + 'ml',
+    noon: Math.round(bodyweight * 0.5) * 10 + 'ml',
+    evening: Math.round(bodyweight * 0.5) * 10 + 'ml（睡前1小时停止大量饮水）'
+  };
+  var theoryMap = {
+    early: pickRandom([
+      { title: '为什么早起练后一定要吃早餐', text: '早起训练后血糖已经很低，不吃早餐直接上班会导致注意力涣散、手抖、到中午暴食。练后30分钟内吃，正好替代早餐，一举两得。' },
+      { title: '练后赶时间怎么快速搞定', text: '前一晚把鸡蛋煮好、三明治夹好放冰箱。早上起床先训练，练完拿出来就能吃。燕麦+牛奶+蛋白粉只需3分钟冲泡。' },
+      { title: '为什么练后要补蛋白质', text: '训练造成肌纤维微损伤，蛋白质中的氨基酸是修复和增粗肌纤维的原料。练后摄入20-40g优质蛋白可最大化肌肉蛋白质合成率。' },
+      { title: '早餐吃碳水会不会犯困', text: '高GI碳水（白粥、甜面包）确实容易犯困。选全麦面包、燕麦、紫薯等低GI碳水，血糖平稳上升，不会犯困。' },
+      { title: '蛋白质吃多了会伤肾吗', text: '对肾功能正常的人，每公斤体重2g以内的蛋白质摄入是安全的。有肾脏疾病的人需要限制。普通人不用担心，但要多喝水帮助代谢。' },
+      { title: '植物蛋白和动物蛋白有区别吗', text: '动物蛋白是完整蛋白（含全部必需氨基酸），吸收率更高。植物蛋白大多缺1-2种氨基酸，但多种搭配（如豆+米）可以互补，长期效果接近。' },
+      { title: '碳水的GI值对训练有什么影响', text: '练后选择中低GI碳水（如全麦面包、燕麦、紫薯）可以持续稳定供能，不会血糖大起大落。高GI碳水适合高强度训练后急需快速补糖时。' },
+      { title: '练后需要吃维生素吗', text: '正常饮食中蔬菜水果充足的训练者不需要额外补维生素。练后搭配小番茄、蓝莓等水果可以提供抗氧化物质，减少训练后的氧化应激。' }
+    ], 3),
+    noon: pickRandom([
+      { title: '为什么练后要补蛋白质', text: '训练造成肌纤维微损伤，蛋白质中的氨基酸是修复和增粗肌纤维的原料。练后摄入20-40g优质蛋白可最大化肌肉蛋白质合成率。' },
+      { title: '为什么练后要补碳水', text: '训练消耗肌肉糖原储备，碳水刺激胰岛素分泌，既促进糖原恢复，又帮助氨基酸进入肌肉。力量训练后按每公斤体重0.8-1.0g补充。' },
+      { title: '为什么要及时补水', text: '每流失1%体重的汗水，运动表现下降约2%。练后按出汗量的1.5倍补充，少量多次饮用，不要一次性灌入。' },
+      { title: '蛋白质吃多了会伤肾吗', text: '对肾功能正常的人，每公斤体重2g以内的蛋白质摄入是安全的。有肾脏疾病的人需要限制。普通人不用担心，但要多喝水帮助代谢。' },
+      { title: '睡前补充酪蛋白有用吗', text: '酪蛋白消化慢（6-8小时），睡前摄入可在夜间持续释放氨基酸，减少肌肉分解。一杯牛奶或希腊酸奶就能提供约10g酪蛋白。' },
+      { title: '植物蛋白和动物蛋白有区别吗', text: '动物蛋白是完整蛋白（含全部必需氨基酸），吸收率更高。植物蛋白大多缺1-2种氨基酸，但多种搭配（如豆+米）可以互补，长期效果接近。' },
+      { title: '增肌期一定要热量盈余吗', text: '初学者可以在热量平衡甚至小幅赤字下增肌，但进阶者需要每天额外摄入200-400大卡。盈余太大只会多长脂肪，不会多长肌肉。' },
+      { title: '碳水的GI值对训练有什么影响', text: '练后选择高GI碳水（如香蕉、白米饭）可以快速恢复糖原；日常饮食以低GI为主（如燕麦、糙米）更稳定血糖，减少脂肪堆积。' },
+      { title: '需要吃锌镁片（ZMA）吗', text: '如果你不缺锌镁，额外补充对力量和恢复没有显著帮助。深绿叶蔬菜、坚果、肉类已含足量镁。缺锌才会影响睾酮，但正常饮食很少缺。' },
+      { title: '训练后可以喝酒吗', text: '酒精会抑制肌肉蛋白质合成长达数小时，同时加速脱水。偶尔一杯影响不大，但训练日最好避免，特别是增肌期。' }
+    ], 3),
+    evening: pickRandom([
+      { title: '为什么晚间练后要减碳水', text: '晚间代谢率下降，胰岛素敏感性降低。大量碳水容易转化为脂肪储存。练后把碳水减到白天的60%，蛋白质正常补即可。' },
+      { title: '练完太晚不想吃固体怎么办', text: '喝一杯牛奶+蛋白粉，或者希腊酸奶。液体蛋白质15-20分钟就能消化吸收，不会带着满胃食物睡觉。' },
+      { title: '为什么练后喝牛奶能助眠', text: '牛奶含色氨酸（血清素前体）和钙，都有助于放松和入睡。练后一杯温牛奶既补充蛋白质又帮助睡眠质量。' },
+      { title: '睡前补充酪蛋白有用吗', text: '酪蛋白消化慢（6-8小时），睡前摄入可在夜间持续释放氨基酸，减少肌肉分解。一杯牛奶或希腊酸奶就能提供约10g酪蛋白。' },
+      { title: '晚间训练后可以喝酒吗', text: '酒精会抑制肌肉蛋白质合成长达数小时，同时加速脱水和影响睡眠质量。训练日尤其要避免，偶尔一杯问题不大。' },
+      { title: '为什么练后要补蛋白质', text: '训练造成肌纤维微损伤，蛋白质中的氨基酸是修复和增粗肌纤维的原料。练后摄入20-40g优质蛋白可最大化肌肉蛋白质合成率。' },
+      { title: '增肌期一定要热量盈余吗', text: '初学者可以在热量平衡甚至小幅赤字下增肌，但进阶者需要每天额外摄入200-400大卡。盈余太大只会多长脂肪，不会多长肌肉。' },
+      { title: '需要吃锌镁片（ZMA）吗', text: '如果你不缺锌镁，额外补充对力量和恢复没有显著帮助。深绿叶蔬菜、坚果、肉类已含足量镁。缺锌才会影响睾酮，但正常饮食很少缺。' }
+    ], 3)
+  };
+
+  // 使用与练前相同的套餐组合
+  var combos = generateMealCombos(timeSlot);
+
+  return {
+    protein: protein,
+    carb: displayCarb,
+    water: waterMap[timeSlot] || waterMap.noon,
+    combos: combos,
+    theory: theoryMap[timeSlot] || theoryMap.noon,
+    timing: timingMap[timeSlot] || timingMap.noon,
+    dailyProtein: Math.round(bodyweight * 1.8) + '-' + Math.round(bodyweight * 2.2) + 'g'
+  };
+}
+
+// ===== plan-engine.js 内联结束 =====
+
+// ===== index.html 主逻辑 =====
+</script>
+<script>
+// ===== 状态管理 =====
+var state = {
+  profile: null,
+  plan: null,
+  logs: [],       // 训练记录
+  measurements: [], // 身体维度记录
+  currentDay: null,
+  currentTrainingData: null,
+  currentTimeslot: 'noon',
+  quizStep: 0,
+  scrollPosition: 0,
+  clickedDayIdx: null
+};
+
+// ===== 组间休息计时器 =====
+var restTimer = {
+  intervalId: null,
+  totalSec: 0,
+  remainingSec: 0,
+  paused: false
+};
+
+function startRestTimer(seconds) {
+  // 如果已有计时器在跑，先清除
+  stopRestTimer();
+
+  restTimer.totalSec = seconds;
+  restTimer.remainingSec = seconds;
+  restTimer.paused = false;
+
+  var bar = document.getElementById('restTimerBar');
+  var numEl = document.getElementById('rtNum');
+  var fillEl = document.getElementById('rtProgressFill');
+  var pauseBtn = document.getElementById('rtPause');
+
+  bar.classList.remove('paused', 'ending');
+  pauseBtn.textContent = '暂停';
+
+  updateRestTimerDisplay();
+  bar.classList.add('show');
+
+  restTimer.intervalId = setInterval(function() {
+    if (restTimer.paused) return;
+    restTimer.remainingSec--;
+    if (restTimer.remainingSec <= 0) {
+      restTimer.remainingSec = 0;
+      updateRestTimerDisplay();
+      finishRestTimer();
+    } else {
+      updateRestTimerDisplay();
+    }
+  }, 1000);
+}
+
+function updateRestTimerDisplay() {
+  var numEl = document.getElementById('rtNum');
+  var fillEl = document.getElementById('rtProgressFill');
+  var m = Math.floor(restTimer.remainingSec / 60);
+  var s = restTimer.remainingSec % 60;
+  numEl.textContent = m > 0 ? (m + ':' + String(s).padStart(2, '0')) : s;
+  var pct = restTimer.totalSec > 0 ? (restTimer.remainingSec / restTimer.totalSec * 100) : 0;
+  fillEl.style.width = pct + '%';
+}
+
+function finishRestTimer() {
+  clearInterval(restTimer.intervalId);
+  restTimer.intervalId = null;
+
+  // 提示音
+  try {
+    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var playBeep = function(freq, delay) {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.3);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime + delay);
+      osc.stop(audioCtx.currentTime + delay + 0.3);
+    };
+    playBeep(880, 0);
+    playBeep(880, 0.4);
+  } catch(e) {}
+
+  // 震动
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+  // 视觉脉冲
+  var bar = document.getElementById('restTimerBar');
+  bar.classList.add('ending');
+
+  // 2秒后自动收起
+  setTimeout(function() {
+    stopRestTimer();
+  }, 2500);
+}
+
+function stopRestTimer() {
+  if (restTimer.intervalId) {
+    clearInterval(restTimer.intervalId);
+    restTimer.intervalId = null;
+  }
+  restTimer.remainingSec = 0;
+  restTimer.paused = false;
+  var bar = document.getElementById('restTimerBar');
+  bar.classList.remove('show', 'ending', 'paused');
+  var pauseBtn = document.getElementById('rtPause');
+  if (pauseBtn) pauseBtn.textContent = '暂停';
+}
+
+function pauseRestTimer() {
+  if (!restTimer.intervalId) return;
+  restTimer.paused = !restTimer.paused;
+  var bar = document.getElementById('restTimerBar');
+  var pauseBtn = document.getElementById('rtPause');
+  if (restTimer.paused) {
+    bar.classList.add('paused');
+    pauseBtn.textContent = '继续';
+  } else {
+    bar.classList.remove('paused');
+    pauseBtn.textContent = '暂停';
+  }
+}
+
+function addRestTime(seconds) {
+  restTimer.remainingSec += seconds;
+  restTimer.totalSec += seconds;
+  updateRestTimerDisplay();
+  // 如果计时器已结束但在ending状态，恢复运行
+  if (!restTimer.intervalId && restTimer.remainingSec > 0) {
+    var bar = document.getElementById('restTimerBar');
+    bar.classList.remove('ending');
+    restTimer.intervalId = setInterval(function() {
+      if (restTimer.paused) return;
+      restTimer.remainingSec--;
+      if (restTimer.remainingSec <= 0) {
+        restTimer.remainingSec = 0;
+        updateRestTimerDisplay();
+        finishRestTimer();
+      } else {
+        updateRestTimerDisplay();
+      }
+    }, 1000);
+  }
+}
+
+// ===== 持久化 =====
+function saveState() {
+  localStorage.setItem('fitnessBuddy', JSON.stringify({
+    profile: state.profile,
+    plan: state.plan,
+    logs: state.logs,
+    measurements: state.measurements || []
+  }));
+}
+function loadState() {
+  var raw = localStorage.getItem('fitnessBuddy');
+  if (raw) {
+    try {
+      var data = JSON.parse(raw);
+      state.profile = data.profile;
+      state.plan = data.plan;
+      state.logs = data.logs || [];
+      state.measurements = data.measurements || [];
+      // 兼容旧版plan：补全周期字段
+      if (state.plan) {
+        if (!state.plan.cycleWeek) state.plan.cycleWeek = 1;
+        if (!state.plan.completedDays) state.plan.completedDays = [];
+        if (!state.plan.cycleStart) state.plan.cycleStart = state.plan.createdAt || new Date().toISOString();
+        if (state.plan.cycleCount === undefined) state.plan.cycleCount = 0;
+        if (state.plan.trackOverride === undefined) state.plan.trackOverride = null;
+        if (!state.plan.skippedDays) state.plan.skippedDays = [];
+        if (!state.plan.weekStartDate) state.plan.weekStartDate = state.plan.cycleStart || state.plan.createdAt || new Date().toISOString();
+      }
+    } catch(e) { console.error('Load failed', e); }
+  }
+}
+
+// ===== Toast 提示 =====
+var toastTimer = null;
+function showToast(msg) {
+  var toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() {
+    toast.classList.remove('show');
+  }, 2500);
+}
+
+// ===== 页面切换 =====
+function showPage(pageId) {
+  var pages = ['quiz','dashboard','training','summary','progress','measure','settings','cycle','year'];
+  pages.forEach(function(p) {
+    var el = document.getElementById('page-' + p);
+    if (el) el.classList.add('hidden');
+  });
+  var target = document.getElementById('page-' + pageId);
+  if (target) target.classList.remove('hidden');
+
+  document.querySelectorAll('.nav-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.page === pageId);
+  });
+}
+
+// ===== 问卷 =====
+var quizSteps = [
+  {
+    title: '基本信息',
+    fields: [
+      { key: 'gender', label: '性别', type: 'choice', options: [
+        { val: 'female', label: '女', desc: '' },
+        { val: 'male', label: '男', desc: '' }
+      ]},
+      { key: 'age', label: '年龄', type: 'number', placeholder: '如: 25' },
+      { key: 'height', label: '身高(cm)', type: 'number', placeholder: '如: 165' },
+      { key: 'bodyweight', label: '体重(kg)', type: 'number', placeholder: '如: 55' }
+    ]
+  },
+  {
+    title: '训练经验',
+    fields: [
+      { key: 'experienceMonths', label: '训练经验', type: 'choice', options: [
+        { val: 0, label: '从未训练', desc: '0个月，全新开始' },
+        { val: 3, label: '3个月以内', desc: '刚开始接触力量训练' },
+        { val: 6, label: '6-12个月', desc: '有一定基础，会基本动作' },
+        { val: 12, label: '12-18个月', desc: '熟练掌握杠铃动作' },
+        { val: 18, label: '18个月以上', desc: '有系统训练经验' }
+      ]}
+    ]
+  },
+  {
+    title: '训练目标与安排',
+    fields: [
+      { key: 'goal', label: '主要目标', type: 'choice', options: [
+        { val: '增肌', label: '增肌', desc: '增加肌肉量，塑造线条' },
+        { val: '减脂塑形', label: '减脂塑形', desc: '降低体脂，保留肌肉' },
+        { val: '力量提升', label: '力量提升', desc: '提升绝对力量' },
+        { val: '运动表现', label: '运动表现', desc: '提升爆发力和体能' }
+      ]},
+      { key: 'daysPerWeek', label: '每周可练几天', type: 'choice', options: [
+        { val: 2, label: '2天', desc: '每周2次' },
+        { val: 3, label: '3天', desc: '每周3次' },
+        { val: 4, label: '4天', desc: '每周4次' },
+        { val: 5, label: '5天', desc: '每周5次' }
+      ]},
+      { key: 'sessionDuration', label: '每次训练时长', type: 'choice', options: [
+        { val: 45, label: '45分钟', desc: '快速高效' },
+        { val: 60, label: '60分钟', desc: '标准时长' },
+        { val: 75, label: '75分钟', desc: '充裕训练' },
+        { val: 90, label: '90分钟', desc: '长时间训练' }
+      ]}
+    ]
+  },
+  {
+    title: '训练场所',
+    fields: [
+      { key: 'venue', label: '训练场所', type: 'choice', options: [
+        { val: 'commercial', label: '商业健身房', desc: '有完整器械、杠铃、哑铃' },
+        { val: 'studio', label: '小型工作室', desc: '有基础器械和哑铃' },
+        { val: 'home', label: '居家', desc: '有限器械或自重训练' }
+      ]}
+    ]
+  },
+  {
+    title: '健康状况',
+    fields: [
+      { key: 'health_lumbar', label: '腰椎问题', type: 'choice', options: [
+        { val: false, label: '无', desc: '' },
+        { val: true, label: '有', desc: '腰突/膨出/腰痛史' }
+      ]},
+      { key: 'health_shoulder', label: '肩关节问题', type: 'choice', options: [
+        { val: false, label: '无', desc: '' },
+        { val: true, label: '有', desc: '肩袖损伤/肩撞击/脱臼史' }
+      ]},
+      { key: 'health_knee', label: '膝关节问题', type: 'choice', options: [
+        { val: false, label: '无', desc: '' },
+        { val: true, label: '有', desc: '半月板/髌骨/前交叉韧带' }
+      ]},
+      { key: 'health_wrist', label: '腕关节问题', type: 'choice', options: [
+        { val: false, label: '无', desc: '' },
+        { val: true, label: '有', desc: '腕管综合征/腕痛' }
+      ]},
+      { key: 'health_hypertension', label: '高血压/心血管', type: 'choice', options: [
+        { val: false, label: '无', desc: '' },
+        { val: true, label: '有', desc: '高血压/心血管疾病' }
+      ]}
+    ]
+  }
+];
+
+function renderQuiz() {
+  var step = quizSteps[state.quizStep];
+  var html = '<div style="font-size:18px;font-weight:700;margin-bottom:16px;">' + step.title + '</div>';
+
+  // 进度条
+  var progHtml = '';
+  for (var i = 0; i < quizSteps.length; i++) {
+    progHtml += '<div class="seg' + (i < state.quizStep ? ' done' : '') + (i === state.quizStep ? ' current' : '') + '"></div>';
+  }
+  document.getElementById('quizProgress').innerHTML = progHtml;
+
+  step.fields.forEach(function(f) {
+    html += '<div style="margin-bottom:16px;">';
+    html += '<label>' + f.label + '</label>';
+    if (f.type === 'choice') {
+      f.options.forEach(function(opt) {
+        var sel = state.profile && state.profile[f.key] !== undefined && String(state.profile[f.key]) === String(opt.val) ? ' selected' : '';
+        html += '<div class="quiz-option' + sel + '" data-field="' + f.key + '" data-val="' + opt.val + '">';
+        html += '<div class="opt-label">' + opt.label + '</div>';
+        if (opt.desc) html += '<div class="opt-desc">' + opt.desc + '</div>';
+        html += '</div>';
+      });
+    } else {
+      var val = state.profile && state.profile[f.key] ? state.profile[f.key] : '';
+      html += '<input type="' + f.type + '" data-field="' + f.key + '" placeholder="' + (f.placeholder || '') + '" value="' + val + '">';
+    }
+    html += '</div>';
+  });
+
+  // 导航按钮
+  html += '<div class="quiz-nav">';
+  if (state.quizStep > 0) {
+    html += '<button class="btn btn-secondary" id="quizPrev">上一步</button>';
+  } else {
+    html += '<div></div>';
+  }
+  if (state.quizStep < quizSteps.length - 1) {
+    html += '<button class="btn btn-primary" id="quizNext">下一步</button>';
+  } else {
+    html += '<button class="btn btn-primary" id="quizFinish">生成训练计划</button>';
+  }
+  html += '</div>';
+
+  document.getElementById('quizContent').innerHTML = html;
+
+  // 绑定事件
+  document.querySelectorAll('.quiz-option').forEach(function(opt) {
+    opt.addEventListener('click', function() {
+      var field = this.dataset.field;
+      var val = this.dataset.val;
+      // 处理数值类型
+      if (val === 'true') val = true;
+      else if (val === 'false') val = false;
+      else if (!isNaN(val) && val !== '') val = Number(val);
+
+      if (!state.profile) state.profile = {};
+      state.profile[field] = val;
+
+      // 更新选中状态
+      this.parentElement.querySelectorAll('.quiz-option').forEach(function(o) {
+        o.classList.remove('selected');
+      });
+      this.classList.add('selected');
+    });
+  });
+  document.querySelectorAll('input[data-field]').forEach(function(inp) {
+    inp.addEventListener('change', function() {
+      if (!state.profile) state.profile = {};
+      var val = this.value;
+      if (this.type === 'number' && val) val = Number(val);
+      state.profile[this.dataset.field] = val;
+    });
+  });
+  var prev = document.getElementById('quizPrev');
+  if (prev) prev.addEventListener('click', function() {
+    state.quizStep--;
+    renderQuiz();
+  });
+  var next = document.getElementById('quizNext');
+  if (next) next.addEventListener('click', function() {
+    state.quizStep++;
+    renderQuiz();
+  });
+  var finish = document.getElementById('quizFinish');
+  if (finish) finish.addEventListener('click', function() {
+    // 生成计划
+    state.plan = generatePlan(state.profile);
+    saveState();
+    renderDashboard();
+    showPage('dashboard');
+  });
+}
+
+// ===== 周期系统 =====
+function getCycleInfo() {
+  if (!state.plan) return null;
+  var cw = state.plan.cycleWeek || 1;
+  var weekNames = ['第1周', '第2周', '第3周', '第4周（减载）'];
+  var weekFocus = [
+    '基础积累期 · 适应当前重量，注重动作质量',
+    '渐进超负荷 · 主项尝试加重2.5-5kg',
+    '强度冲刺 · 主项冲击新重量，辅助项维持',
+    '减载恢复 · 训练量和强度降低40-50%，让身体恢复'
+  ];
+  var weekDetail = [
+    '本周保持推荐重量不变，专注于动作节奏和控制。如果上一周某动作轻松完成目标次数上限，可加重2.5kg。训练容量保持在基准水平。',
+    '主项（深蹲/卧推/硬拉等）尝试在上一周基础上加重2.5-5kg。辅助项保持不变。如果加重后无法完成目标次数下限，回退到上周重量。',
+    '主项继续冲击新重量。RPE允许到9。辅助项可适当加重2.5kg。本周是周期内训练强度最高的一周，注意充分热身和休息。',
+    '所有动作重量降低到第1周的80%，组数减少1组（最少2组），RPE控制在6-7。目的是消除疲劳、恢复关节，为下个周期做准备。'
+  ];
+  return {
+    currentWeek: cw,
+    totalWeeks: 4,
+    weekName: weekNames[cw - 1] || weekNames[0],
+    focus: weekFocus[cw - 1] || weekFocus[0],
+    detail: weekDetail[cw - 1] || weekDetail[0],
+    isDeload: cw === 4
+  };
+}
+
+function renderCycleBar() {
+  var info = getCycleInfo();
+  if (!info) return '';
+  var html = '<div class="cycle-bar" style="cursor:pointer;" onclick="renderCycleOverview();showPage(\'cycle\');">';
+  for (var i = 1; i <= 4; i++) {
+    var cls = 'cycle-seg';
+    if (i < info.currentWeek) cls += ' done';
+    if (i === info.currentWeek) cls += ' active';
+    if (i === 4) cls += ' deload';
+    html += '<div class="' + cls + '"></div>';
+  }
+  html += '</div>';
+  html += '<div class="cycle-info" style="cursor:pointer;" onclick="renderCycleOverview();showPage(\'cycle\');">';
+  html += '<span><span class="ci-label">' + info.weekName + '</span> · ' + info.focus + '</span>';
+  html += '<span style="font-size:11px;">' + (info.isDeload ? '减载周' : '第' + info.currentWeek + '/4周') + ' · 点击查看详情 ›</span>';
+  html += '</div>';
+  return html;
+}
+
+function renderCycleOverview() {
+  var info = getCycleInfo();
+  if (!info) { showPage('dashboard'); return; }
+
+  var html = '';
+
+  // 周期总览
+  html += '<div class="card">';
+  html += '<div class="card-title">4周训练周期</div>';
+  html += '<div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:14px;">';
+  html += '每个周期4周：前3周渐进超负荷（逐步加重），第4周减载恢复。完成一个周期后自动进入下一个周期，重量基础线提升。';
+  html += '</div>';
+  html += renderCycleBar();
+  html += '</div>';
+
+  // 各周详情
+  var weekData = [
+    { week: 1, name: '第1周 · 基础积累', focus: '适应重量，打磨动作', detail: '保持推荐重量不变，专注于动作节奏和控制。如果上周某动作轻松完成目标次数上限，可加重2.5kg。' },
+    { week: 2, name: '第2周 · 渐进超负荷', focus: '主项加重2.5-5kg', detail: '主项（深蹲/卧推/硬拉等）尝试在上一周基础上加重2.5-5kg。辅助项保持不变。如果加重后无法完成目标次数下限，回退到上周重量。' },
+    { week: 3, name: '第3周 · 强度冲刺', focus: '冲击新重量，RPE可达9', detail: '主项继续冲击新重量。辅助项可适当加重2.5kg。本周是周期内训练强度最高的一周，注意充分热身和休息。' },
+    { week: 4, name: '第4周 · 减载恢复', focus: '降量40-50%，消除疲劳', detail: '所有动作重量降低到第1周的80%，组数减少1组（最少2组），RPE控制在6-7。目的是消除疲劳、恢复关节，为下个周期做准备。' }
+  ];
+
+  weekData.forEach(function(w) {
+    var isCurrent = w.week === info.currentWeek;
+    var isDeload = w.week === 4;
+    var cls = 'cycle-overview-card';
+    if (isCurrent) cls += ' current';
+    if (isDeload) cls += ' deload';
+
+    html += '<div class="' + cls + '">';
+    html += '<div class="co-week">' + w.name;
+    if (isCurrent) html += ' <span class="co-badge now">本周</span>';
+    if (isDeload) html += ' <span class="co-badge deload">减载</span>';
+    html += '</div>';
+    html += '<div class="co-focus">' + w.focus + '</div>';
+    html += '<div class="co-detail">' + w.detail + '</div>';
+    html += '</div>';
+  });
+
+  // 完成本周的条件说明
+  html += '<div class="card" style="border-left:3px solid var(--accent);">';
+  html += '<div style="font-size:14px;font-weight:600;margin-bottom:8px;">如何进入下一周</div>';
+  html += '<div style="font-size:12px;color:var(--text2);line-height:1.8;">';
+  html += '完成本周所有训练日后，系统自动滚动到下一周并更新重量推荐。<br>';
+  html += '第4周完成后，自动进入新周期第1周，重量基础线以第3周的最高重量为基准。';
+  html += '</div>';
+  html += '</div>';
+
+  document.getElementById('cycleOverviewContent').innerHTML = html;
+}
+
+// ===== NSCA-CPT 肌肥大周期化模型 =====
+function renderYearRoadmap() {
+  var info = getCycleInfo();
+  var cw = info ? info.currentWeek : 1;
+
+  var completedCycles = state.plan ? (state.plan.cycleCount || 0) : 0;
+
+  // 肌肥大训练参数
+  var paramLib = {
+    hypertrophy:{ name: '肌肥大', en: 'Hypertrophy', reps: '8-12', sets: '3-4', intensity: '67-75% 1RM', rest: '60-90s', rpe: '7-8', color: 'hypertrophy' },
+    strength:  { name: '肌力',   en: 'Muscular Strength', reps: '4-6', sets: '3-5', intensity: '80-88% 1RM', rest: '2-3min', rpe: '8-9', color: 'strength' }
+  };
+
+  // 肌肥大周期化路线
+  var track = {
+    label: '肌肥大周期化路线',
+    sub: '以肌肥大为核心，穿插肌力阶段打破适应平台',
+    focusNote: '肌肥大为主轨，每次插入2-3周肌力阶段打破适应，回到肌肥大时能使用更大重量刺激肌肉生长',
+    phases: [
+      { type: 'hypertrophy', weeks: 4 },
+      { type: 'strength',    weeks: 3 },
+      { type: 'hypertrophy', weeks: 4 },
+      { type: 'strength',    weeks: 2 },
+      { type: 'hypertrophy', weeks: 3 }
+    ]
+  };
+
+  // 计算当前在路线中的位置
+  var totalWeeksInTrack = 0;
+  track.phases.forEach(function(p) { totalWeeksInTrack += p.weeks; });
+  var elapsedWeeks = completedCycles * 4 + (cw - 1);
+  var trackPos = elapsedWeeks % totalWeeksInTrack;
+  var trackRound = Math.floor(elapsedWeeks / totalWeeksInTrack) + 1;
+
+  var currentPhaseIdx = 0;
+  var acc = 0;
+  for (var i = 0; i < track.phases.length; i++) {
+    acc += track.phases[i].weeks;
+    if (trackPos < acc) { currentPhaseIdx = i; break; }
+  }
+
+  var html = '';
+
+  // === 顶部说明 ===
+  html += '<div class="card">';
+  html += '<div class="card-title">肌肥大周期化路线</div>';
+  html += '<div style="font-size:13px;color:var(--text2);line-height:1.8;">';
+  html += '根据 NSCA-CPT 周期化原则，肌肥大训练不是一成不变地做8-12次。';
+  html += '每4周肌肥大阶段后插入2-3周肌力阶段，给神经系统新的刺激，打破适应平台。';
+  html += '回到肌肥大时能使用更大重量，从而产生更强的代谢压力和机械张力，促进肌肉生长。';
+  html += '</div>';
+  if (state.profile) {
+    html += '<div style="margin-top:8px;font-size:12px;color:var(--text3);">';
+    html += '已训练 ' + elapsedWeeks + ' 周 · 第' + trackRound + '轮循环 · 当前在第' + (currentPhaseIdx + 1) + '阶段';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // === 图例 ===
+  html += '<div class="perio-legend">';
+  html += '<div class="pl-item"><div class="pl-dot" style="background:#a78bfa;"></div>肌肥大</div>';
+  html += '<div class="pl-item"><div class="pl-dot" style="background:#e06c75;"></div>肌力</div>';
+  html += '</div>';
+
+  // === 箭头流程图 ===
+  html += '<div class="card">';
+  html += '<div class="perio-track-header">';
+  html += '<div class="perio-track-label">' + track.label + '</div>';
+  html += '</div>';
+  html += '<div class="perio-track-sub">' + track.sub + '</div>';
+
+  html += '<div class="perio-track">';
+  html += '<div class="perio-arrows">';
+
+  var phaseStartWeek = 0;
+  track.phases.forEach(function(p, pIdx) {
+    var params = paramLib[p.type];
+    var isDone = pIdx < currentPhaseIdx;
+    var isCurrent = pIdx === currentPhaseIdx;
+
+    var cls = 'perio-arrow ' + params.color;
+    if (isDone) cls += ' done';
+    if (isCurrent) cls += ' current';
+
+    html += '<div class="' + cls + '">';
+    html += '<div class="pa-weeks">' + p.weeks + 'w</div>';
+    html += '<div class="pa-type">' + params.name + '</div>';
+    html += '<div class="pa-num">W' + (phaseStartWeek + 1) + '-' + (phaseStartWeek + p.weeks) + '</div>';
+    html += '</div>';
+
+    phaseStartWeek += p.weeks;
+  });
+
+  html += '</div>';
+  html += '<div class="perio-focus-note">' + track.focusNote + '</div>';
+  html += '</div>';
+
+  // 当前阶段训练参数
+  var curP = track.phases[currentPhaseIdx];
+  var curParams = paramLib[curP.type];
+  html += '<div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">';
+  html += '<div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:8px;">当前阶段参数 · ' + curParams.name + '（' + curParams.en + '）</div>';
+  html += '<div class="perio-params">';
+  html += '<div class="pp-item"><div class="pp-label">次数/组</div><div class="pp-val">' + curParams.reps + '</div></div>';
+  html += '<div class="pp-item"><div class="pp-label">组数</div><div class="pp-val">' + curParams.sets + '</div></div>';
+  html += '<div class="pp-item"><div class="pp-label">强度</div><div class="pp-val">' + curParams.intensity + '</div></div>';
+  html += '<div class="pp-item"><div class="pp-label">间歇</div><div class="pp-val">' + curParams.rest + '</div></div>';
+  html += '</div>';
+  html += '<div style="margin-top:6px;font-size:11px;color:var(--text3);">RPE: ' + curParams.rpe + ' · 本阶段持续 ' + curP.weeks + ' 周</div>';
+  html += '</div>';
+
+  html += '</div>';
+
+  // === 为什么穿插肌力阶段 ===
+  html += '<div class="card">';
+  html += '<div class="card-title">为什么要在肌肥大中穿插肌力阶段？</div>';
+  html += '<div style="font-size:12px;color:var(--text2);line-height:1.8;">';
+  html += '<div style="margin-bottom:8px;">长期只做8-12次区间，身体会产生适应性，肌肉增长趋于停滞。穿插2-3周大重量低次数训练，能带来以下好处：</div>';
+  html += '<div style="padding-left:16px;">';
+  html += '<div style="margin-bottom:6px;">· 提升神经驱动效率，募集更多运动单位</div>';
+  html += '<div style="margin-bottom:6px;">· 增强肌腱和结缔组织，为后续更大重量做准备</div>';
+  html += '<div style="margin-bottom:6px;">· 打破代谢适应，给肌肉新的刺激信号</div>';
+  html += '<div>· 回到肌肥大时能使用更大重量，产生更强的机械张力</div>';
+  html += '</div>';
+  html += '<div style="margin-top:8px;font-size:11px;color:var(--text3);">注意：肌力阶段的目的是服务肌肥大，不是转练力量举。2-3周后回到肌肥大区间即可。</div>';
+  html += '</div>';
+  html += '</div>';
+
+  document.getElementById('yearRoadmapContent').innerHTML = html;
+}
+
+// ===== 请假/推迟训练 =====
+function skipDay(dayIdx) {
+  if (!state.plan) return;
+  if (!state.plan.skippedDays) state.plan.skippedDays = [];
+  if (state.plan.skippedDays.indexOf(dayIdx) < 0) {
+    state.plan.skippedDays.push(dayIdx);
+    saveState();
+    var dayName = state.plan.weekPlan[dayIdx].dayName;
+    var dayType = state.plan.weekPlan[dayIdx].type;
+    showToast(dayName + ' ' + dayType + ' 已请假，训练内容顺延至下周');
+    renderDashboard();
+    checkWeekCompletion();
+  }
+}
+
+function unskipDay(dayIdx) {
+  if (!state.plan || !state.plan.skippedDays) return;
+  var idx = state.plan.skippedDays.indexOf(dayIdx);
+  if (idx >= 0) {
+    state.plan.skippedDays.splice(idx, 1);
+    saveState();
+    renderDashboard();
+  }
+}
+
+function checkWeekCompletion() {
+  if (!state.plan) return;
+  var trainingDays = state.plan.weekPlan.filter(function(d) { return !d.isRest; });
+  var completedDays = state.plan.completedDays || [];
+  var skippedDays = state.plan.skippedDays || [];
+
+  // 统计本周已处理的天数（完成 + 请假）
+  var doneCount = 0;
+  trainingDays.forEach(function(day) {
+    var dayIdx = state.plan.weekPlan.indexOf(day);
+    if (completedDays.indexOf(dayIdx) >= 0 || skippedDays.indexOf(dayIdx) >= 0) doneCount++;
+  });
+
+  if (doneCount >= trainingDays.length) {
+    // 本周全部处理完（完成或请假），滚动到下一周
+    advanceToNextWeek();
+  }
+}
+
+function advanceToNextWeek() {
+  var cw = state.plan.cycleWeek || 1;
+  var skippedDays = state.plan.skippedDays || [];
+
+  if (cw < 4) {
+    // 进入下一周
+    state.plan.cycleWeek = cw + 1;
+    state.plan.completedDays = [];
+    state.plan.weekStartDate = new Date().toISOString();
+
+    // 如果是第4周（减载周），降低重量
+    if (state.plan.cycleWeek === 4) {
+      applyDeload();
+    } else {
+      // 第2、3周：尝试渐进超负荷
+      applyProgressiveOverload();
+    }
+
+    // 请假的训练日顺延到下周：重新标记为未完成，保留训练内容
+    // skippedDays 清空，因为新的一周开始，这些日的内容已经在weekPlan中了
+    var skippedCount = skippedDays.length;
+    state.plan.skippedDays = [];
+
+    saveState();
+    var msg = '本周训练全部处理完！进入' + getCycleInfo().weekName;
+    if (skippedCount > 0) {
+      msg += '（' + skippedCount + '天请假已顺延至本周）';
+    }
+    showToast(msg);
+  } else {
+    // 完成4周周期，进入新周期第1周
+    state.plan.cycleWeek = 1;
+    state.plan.completedDays = [];
+    state.plan.skippedDays = [];
+    state.plan.cycleStart = new Date().toISOString();
+    state.plan.weekStartDate = new Date().toISOString();
+    state.plan.cycleCount = (state.plan.cycleCount || 0) + 1;
+
+    // 重新生成计划（保留profile，新周期辅助动作轮换）
+    var newPlan = generatePlan(state.profile);
+    state.plan.weekPlan = newPlan.weekPlan;
+    state.plan.id = newPlan.id;
+    state.plan.createdAt = newPlan.createdAt;
+
+    saveState();
+    showToast('4周周期完成！新周期已开始');
+  }
+}
+
+function applyProgressiveOverload() {
+  // 获取最近一次训练记录中各动作的最大重量
+  state.plan.weekPlan.forEach(function(day) {
+    if (day.isRest) return;
+    day.exercises.forEach(function(exTpl) {
+      // 查找该动作的历史记录
+      var lastLog = state.logs.filter(function(l) {
+        return l.exercises.some(function(e) { return e.exerciseId === exTpl.exerciseId; });
+      }).pop();
+
+      if (lastLog) {
+        var lastEx = lastLog.exercises.find(function(e) { return e.exerciseId === exTpl.exerciseId; });
+        if (lastEx && lastEx.sets && lastEx.sets.length > 0) {
+          var maxWeight = 0;
+          lastEx.sets.forEach(function(s) { if (s.weight && s.weight > maxWeight) maxWeight = s.weight; });
+
+          // 如果上一周能完成目标次数上限，加重2.5kg
+          var topReps = parseInt(exTpl.reps.split('-')[1] || exTpl.reps.split('-')[0]);
+          var achievedTopReps = false;
+          lastEx.sets.forEach(function(s) {
+            if (s.reps && s.reps >= topReps && s.weight === maxWeight) achievedTopReps = true;
+          });
+
+          if (achievedTopReps && maxWeight > 0) {
+            // 在exTpl上标记建议加重
+            exTpl.suggestedIncrease = 2.5;
+          }
+        }
+      }
+    });
+  });
+}
+
+function applyDeload() {
+  // 减载周：所有动作组数-1（最少2组）
+  state.plan.weekPlan.forEach(function(day) {
+    if (day.isRest) return;
+    day.exercises.forEach(function(exTpl) {
+      if (exTpl.sets > 2) exTpl.sets = exTpl.sets - 1;
+      exTpl.isDeload = true;
+    });
+  });
+}
+
+// ===== 周计划看板 =====
+function renderDashboard() {
+  if (!state.plan) {
+    showPage('quiz');
+    renderQuiz();
+    return;
+  }
+
+  var levelText = state.plan.level === 1 ? 'Level 1 初级' : state.plan.level === 2 ? 'Level 2 中级' : 'Level 3 高级';
+  var info = getCycleInfo();
+  document.getElementById('weekTitle').textContent = info ? info.weekName + ' · 训练计划' : '本周训练计划';
+  document.getElementById('weekSubtitle').textContent = levelText + ' · ' + state.plan.daysPerWeek + '天/周 · ' + state.profile.goal;
+
+  // 周期进度条
+  var cycleBar = document.getElementById('cycleProgressBar');
+  if (cycleBar) cycleBar.innerHTML = renderCycleBar();
+
+  // 计算今天是周计划的第几天（基于weekStartDate）
+  var weekStart = new Date(state.plan.weekStartDate || state.plan.cycleStart || state.plan.createdAt);
+  var now = new Date();
+  var diffMs = now.getTime() - weekStart.getTime();
+  var diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  var today = Math.max(0, Math.min(6, diffDays)); // 0-6，限制在0-6范围内
+
+  var html = '';
+  state.plan.weekPlan.forEach(function(day, idx) {
+    var isToday = idx === today;
+    var isDone = (state.plan.completedDays || []).indexOf(idx) >= 0;
+
+    var classes = 'day-card';
+    if (day.isRest) classes += ' rest';
+    if (isToday) classes += ' today';
+
+    var skippedDays = state.plan.skippedDays || [];
+    var isSkipped = skippedDays.indexOf(idx) >= 0;
+    if (isSkipped) classes += ' skipped';
+
+    html += '<div class="' + classes + '" data-day="' + idx + '">';
+    html += '<div class="day-name">' + day.dayName + (isToday ? ' · 今天' : '') + '</div>';
+    if (day.isRest) {
+      html += '<div class="day-type rest">休息</div>';
+      html += '<div class="ex-count">主动恢复</div>';
+    } else {
+      html += '<div class="day-type">' + day.type + '</div>';
+      html += '<div class="ex-count">' + day.exercises.length + '个动作</div>';
+      if (isDone) {
+        html += '<div class="done-badge">已完成 ✓</div>';
+      } else if (isSkipped) {
+        html += '<div class="skip-badge">已请假（顺延下周）</div>';
+        html += '<button class="skip-btn" onclick="event.stopPropagation();unskipDay(' + idx + ')">取消请假</button>';
+      } else {
+        html += '<button class="skip-btn" onclick="event.stopPropagation();skipDay(' + idx + ')">请假/推迟</button>';
+      }
+    }
+    html += '</div>';
+  });
+  document.getElementById('weekDashboard').innerHTML = html;
+
+  document.querySelectorAll('.day-card[data-day]').forEach(function(card) {
+    card.addEventListener('click', function() {
+      var dayIdx = parseInt(this.dataset.day);
+      if (!state.plan.weekPlan[dayIdx].isRest) {
+        state.clickedDayIdx = dayIdx;
+        state.scrollPosition = window.scrollY;
+        openTraining(dayIdx);
+      }
+    });
+  });
+
+  // 返回后恢复滚动位置并高亮之前点击的卡片
+  if (state.clickedDayIdx !== null) {
+    var clickedCard = document.querySelector('.day-card[data-day="' + state.clickedDayIdx + '"]');
+    if (clickedCard) {
+      clickedCard.classList.add('just-returned');
+      setTimeout(function() {
+        window.scrollTo(0, state.scrollPosition || 0);
+        setTimeout(function() {
+          clickedCard.classList.remove('just-returned');
+        }, 2000);
+      }, 50);
+    }
+  }
+
+  // 更新底部提示：本周进度摘要
+  var tipEl = document.getElementById('todayTip');
+  if (tipEl) {
+    var trainingDays2 = state.plan.weekPlan.filter(function(d) { return !d.isRest; });
+    var completedCount = (state.plan.completedDays || []).filter(function(idx) {
+      return trainingDays2.some(function(d) { return state.plan.weekPlan.indexOf(d) === idx; });
+    }).length;
+    var skippedCount = (state.plan.skippedDays || []).filter(function(idx) {
+      return trainingDays2.some(function(d) { return state.plan.weekPlan.indexOf(d) === idx; });
+    }).length;
+    var remainingCount = trainingDays2.length - completedCount - skippedCount;
+    var tipHtml = '<div style="font-size:13px;color:var(--text2);line-height:2;">';
+    tipHtml += '本周进度：已完成 <b style="color:var(--accent);">' + completedCount + '</b>';
+    if (skippedCount > 0) tipHtml += ' · 请假 <b style="color:var(--text2);">' + skippedCount + '</b>';
+    tipHtml += ' · 待训练 <b>' + remainingCount + '</b> / 共 ' + trainingDays2.length + ' 天';
+    if (skippedCount > 0) tipHtml += '<br><span style="font-size:12px;">请假的训练日内容将顺延至下周</span>';
+    tipHtml += '</div>';
+    tipEl.innerHTML = tipHtml;
+  }
+
+  // 维度测量提醒
+  var measureReminder = document.getElementById('measureReminder');
+  if (measureReminder) {
+    var reminder = getMeasureReminder();
+    if (reminder.needed) {
+      measureReminder.style.display = 'block';
+      var badgeText = reminder.daysSince === null ? '首次测量' : ('已' + reminder.daysSince + '天');
+      measureReminder.innerHTML = '<div class="measure-reminder-card" onclick="document.getElementById(\'navMeasure\').click()" style="cursor:pointer;">' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          '<div style="font-size:24px;">📏</div>' +
+          '<div style="flex:1;">' +
+            '<div style="font-size:13px;font-weight:600;color:var(--text);">该量维度了</div>' +
+            '<div style="font-size:11px;color:var(--text2);margin-top:2px;">' + reminder.reason + '</div>' +
+          '</div>' +
+          '<div style="font-size:11px;color:var(--accent);background:var(--accent-light);padding:4px 10px;border-radius:12px;font-weight:600;">' + badgeText + '</div>' +
+        '</div>' +
+      '</div>';
+    } else {
+      measureReminder.style.display = 'none';
+    }
+  }
+}
+
+// 节奏转文字描述
+function tempoToText(tempo) {
+  if (tempo === '持续') return '持续发力，匀速完成';
+  if (tempo === '爆发') return '爆发发力，快速推起';
+  var parts = tempo.split('-');
+  if (parts.length === 2) {
+    return '下放' + parts[0] + '秒，推起' + parts[1] + '秒';
+  }
+  if (parts.length === 4) {
+    var desc = '下放' + parts[0] + '秒';
+    if (parts[1] !== '0') desc += '，底部停' + parts[1] + '秒';
+    desc += '，推起' + parts[2] + '秒';
+    if (parts[3] !== '0') desc += '，顶部停' + parts[3] + '秒';
+    return desc;
+  }
+  return tempo;
+}
+
+// 预估训练总时间
+function estimateTrainingTime(day) {
+  var warmupMin = 7;
+  var stretchMin = 7;
+  var setupPerExercise = 60;
+  var liftPerSet = 40;
+
+  var totalSeconds = (warmupMin + stretchMin) * 60;
+  day.exercises.forEach(function(ex) {
+    totalSeconds += ex.sets * (liftPerSet + ex.rest);
+    totalSeconds += setupPerExercise;
+  });
+
+  return Math.round(totalSeconds / 60);
+}
+
+// 从数组中随机抽取n个元素
+function pickRandom(arr, n) {
+  var pool = arr.slice();
+  var result = [];
+  for (var i = 0; i < n && pool.length > 0; i++) {
+    var idx = Math.floor(Math.random() * pool.length);
+    result.push(pool.splice(idx, 1)[0]);
+  }
+  return result;
+}
+
+// 将items中的括号内容包装为更小字号的span
+function formatItems(items) {
+  return items.replace(/（([^）]+)）/g, '<span class="qty">($1)</span>');
+}
+
+// 营养师风格套餐：练前+练后匹配组合
+function generateMealCombos(timeSlot) {
+  timeSlot = timeSlot || 'noon';
+
+  var comboPools = {
+    early: [
+      { pre: { name: '香蕉+酸奶', items: '香蕉1根 + 酸奶1杯（150g）', why: '清晨肠胃刚苏醒，香蕉好消化，酸奶不胀气', tag: '零准备' },
+        post: { name: '鸡蛋+全麦面包+牛奶', items: '水煮蛋2个 + 全麦面包2片 + 牛奶1杯', why: '经典早餐三件套，蛋白+碳水+钙一次到位', tag: '早餐' },
+        matchReason: '练前轻量唤醒肠胃，练后正餐补齐营养' },
+      { pre: { name: '蜂蜜水+全麦面包', items: '蜂蜜1勺冲温水 + 全麦面包1片', why: '一夜禁食后蜂蜜快速升血糖唤醒身体', tag: '应急' },
+        post: { name: '燕麦牛奶+香蕉+蛋白粉', items: '即食燕麦40g冲牛奶 + 香蕉1根 + 蛋白粉半勺', why: '一碗搞定所有营养，3分钟做好', tag: '快手' },
+        matchReason: '练前最小量应急，练后一碗补齐蛋白和碳水' },
+      { pre: { name: '燕麦+牛奶', items: '即食燕麦30g + 牛奶1杯（250ml）', why: '低GI碳水持续供能，适合提前1小时吃', tag: '低GI' },
+        post: { name: '鸡蛋卷饼+豆浆', items: '鸡蛋2个卷全麦饼 + 无糖豆浆1杯', why: '碳水蛋白都够，路上也能吃', tag: '便携' },
+        matchReason: '练前慢碳打底，练后卷饼带走省时间' },
+      { pre: { name: '香蕉+牛奶', items: '香蕉1根 + 牛奶1杯（250ml）', why: '一睁眼最快能搞定的搭配', tag: '零准备' },
+        post: { name: '紫薯+鸡蛋+牛奶', items: '紫薯1个 + 水煮蛋2个 + 牛奶1杯', why: '粗粮替代面包，扛饿到中午', tag: '粗粮' },
+        matchReason: '练前最快补给，练后粗粮持久供能' },
+      { pre: { name: '全麦面包+鸡蛋', items: '全麦面包1片 + 水煮蛋1个', why: '提前30分钟吃，碳水和蛋白质都到位', tag: '高蛋白' },
+        post: { name: '酸奶碗+坚果', items: '希腊酸奶1杯 + 燕麦片 + 蓝莓/香蕉 + 坚果碎', why: '不用开火，营养均衡，适合赶时间', tag: '零准备' },
+        matchReason: '练前蛋白到位，练后酸奶碗不用开火' },
+      { pre: { name: '紫薯+牛奶', items: '小紫薯1个（150g）+ 牛奶1杯', why: '粗粮扛饿，练完赶去上班不饿', tag: '粗粮' },
+        post: { name: '全麦三明治+牛奶', items: '全麦面包+鸡胸肉+生菜+番茄 + 牛奶1杯', why: '碳水蛋白蔬菜齐全，提前一晚做好带走', tag: '正餐' },
+        matchReason: '练前粗粮供能，练后三明治带走上班' }
+    ],
+    noon: [
+      { pre: { name: '香蕉+酸奶', items: '香蕉1根 + 酸奶1杯（150g）', why: '香蕉提供快速能量，酸奶易消化不胀气', tag: '零准备' },
+        post: { name: '鸡胸肉炒西兰花+米饭', items: '鸡胸肉1掌大小 + 西兰花半碗 + 米饭1碗', why: '鸡胸肉低脂高蛋白，西兰花富含维C和膳食纤维', tag: '正餐' },
+        matchReason: '练前轻量补给，练后正餐补蛋白+蔬菜' },
+      { pre: { name: '全麦面包+花生酱', items: '全麦面包1-2片 + 花生酱1勺', why: '复合碳水持续供能，少量脂肪延缓饥饿感', tag: '扛饿' },
+        post: { name: '蛋白粉+香蕉', items: '乳清蛋白粉1勺（30g）冲水 + 香蕉1根', why: '乳清蛋白30分钟内进入血液，吸收最快', tag: '高蛋白' },
+        matchReason: '练前扛饿打底，练后快速补蛋白' },
+      { pre: { name: '燕麦+牛奶', items: '即食燕麦30g + 牛奶1杯（250ml）', why: '燕麦是低GI碳水，持续稳定供能', tag: '低GI' },
+        post: { name: '煎三文鱼+糙米饭+菠菜', items: '三文鱼1块（120g）+ 糙米饭1碗 + 蒜蓉菠菜1份', why: '三文鱼含Omega-3抗炎促恢复，菠菜补铁', tag: '正餐' },
+        matchReason: '练前慢碳供能，练后Omega-3抗炎促恢复' },
+      { pre: { name: '香蕉+牛奶', items: '香蕉1根 + 牛奶1杯（250ml）', why: '简单快速，碳水+蛋白质一举两得', tag: '零准备' },
+        post: { name: '番茄牛肉面', items: '瘦牛肉片100g + 番茄2个煮汤 + 面条1碗', why: '牛肉富含肌酸和铁，番茄的维C促进铁吸收', tag: '正餐' },
+        matchReason: '练前零准备，练后牛肉补铁补肌酸' },
+      { pre: { name: '全麦面包+鸡蛋', items: '全麦面包2片 + 水煮蛋1-2个', why: '复合碳水搭配优质蛋白，饱腹感适中', tag: '高蛋白' },
+        post: { name: '酸奶+全麦面包', items: '希腊酸奶1杯（150g）+ 全麦面包2片', why: '酸奶蛋白质密度高，面包提供复合碳水', tag: '便携' },
+        matchReason: '练前蛋白到位，练后酸奶轻量补充' },
+      { pre: { name: '紫薯+牛奶', items: '小紫薯1个（150g）+ 牛奶1杯', why: '紫薯富含复合碳水，比米饭更扛饿', tag: '粗粮' },
+        post: { name: '虾仁炒蛋+杂粮饭+青菜', items: '虾仁10只 + 鸡蛋2个 + 杂粮饭1碗 + 炒小青菜1份', why: '虾仁高蛋白低脂，蛋黄含卵磷脂助恢复', tag: '正餐' },
+        matchReason: '练前粗粮供能，练后海鲜蛋白+绿叶蔬菜' },
+      { pre: { name: '香蕉+坚果', items: '香蕉1根 + 混合坚果1小把（15g）', why: '快碳水搭配健康脂肪，适合提前1小时吃', tag: '便携' },
+        post: { name: '鸡蛋+红薯', items: '鸡蛋2-3个 + 中等红薯1个（200g）', why: '鸡蛋是蛋白质利用率最高的食物，红薯富含钾', tag: '经济' },
+        matchReason: '练前便携零食，练后经济实惠正餐' },
+      { pre: { name: '鸡胸肉三明治+生菜番茄', items: '全麦面包+鸡胸肉+生菜+番茄片', why: '碳水蛋白蔬菜齐全，适合时间充裕时', tag: '正餐' },
+        post: { name: '牛奶+香蕉+蛋白粉', items: '牛奶1杯 + 香蕉1根 + 蛋白粉1勺打匀', why: '一杯搞定蛋白+碳水+水分，适合没胃口时', tag: '流食' },
+        matchReason: '练前正餐吃饱，练后流食好消化' }
+    ],
+    evening: [
+      { pre: { name: '全麦面包+鸡蛋', items: '全麦面包2片 + 水煮蛋1-2个', why: '下班路上便利店就能买到，碳水+蛋白质到位', tag: '便携' },
+        post: { name: '牛奶+蛋白粉', items: '牛奶1杯（250ml）+ 乳清蛋白粉1勺', why: '液体好消化，不增加肠胃负担，10分钟搞定', tag: '轻量' },
+        matchReason: '练前便利店解决，练后液体好消化不撑胃' },
+      { pre: { name: '香蕉+坚果', items: '香蕉1根 + 混合坚果1小把（15g）', why: '快碳水搭配健康脂肪，适合提前1小时吃', tag: '便携' },
+        post: { name: '希腊酸奶+蓝莓', items: '希腊酸奶1杯（150g）+ 蓝莓一小把', why: '酸奶含酪蛋白慢消化，蓝莓抗氧化助恢复', tag: '助眠' },
+        matchReason: '练前便携零食，练后酪蛋白+花青素助眠' },
+      { pre: { name: '紫薯+牛奶', items: '小紫薯1个（150g）+ 牛奶1杯', why: '下午没吃好的话，粗粮+蛋白质补上', tag: '粗粮' },
+        post: { name: '鸡蛋+全麦面包', items: '水煮蛋2个 + 全麦面包1片', why: '蛋白质够，碳水少量不会热量过剩', tag: '轻量' },
+        matchReason: '练前粗粮扛饿，练后轻量收尾控热量' },
+      { pre: { name: '燕麦+牛奶', items: '即食燕麦30g + 牛奶1杯（250ml）', why: '办公室就可以泡，低GI持续供能', tag: '低GI' },
+        post: { name: '牛奶+香蕉', items: '牛奶1杯（250ml）+ 香蕉半根', why: '牛奶含色氨酸助眠，香蕉补镁放松肌肉', tag: '助眠' },
+        matchReason: '练前慢碳供能，练后色氨酸+镁助眠放松' },
+      { pre: { name: '香蕉+酸奶', items: '香蕉1根 + 酸奶1杯（150g）', why: '下午茶替代品，不会太撑影响训练', tag: '零准备' },
+        post: { name: '豆腐脑+鸡蛋', items: '嫩豆腐1碗 + 水煮蛋1个 + 少许酱油', why: '植物蛋白易消化，适合乳糖不耐', tag: '无乳糖' },
+        matchReason: '练前零准备，练后植物蛋白好消化' },
+      { pre: { name: '全麦面包+花生酱', items: '全麦面包1-2片 + 花生酱1勺', why: '下班路上吃，扛饿直到练完', tag: '扛饿' },
+        post: { name: '蛋白粉+燕麦', items: '乳清蛋白粉1勺 + 即食燕麦20g冲牛奶', why: '少量慢碳水+蛋白质，不会太撑影响睡眠', tag: '代餐' },
+        matchReason: '练前扛饿垫底，练后代餐控热量' }
+    ]
+  };
+
+  var pool = comboPools[timeSlot] || comboPools.noon;
+  return pickRandom(pool, 3);
+}
+
+// 练前营养建议（按时段，使用匹配套餐）
+function generatePreWorkoutAdvice(timeSlot) {
+  timeSlot = timeSlot || 'noon';
+
+  var timingMap = {
+    early: '起床后30分钟内进食，训练前30-60分钟',
+    noon: '训练前1-2小时进食',
+    evening: '下班后训练前1小时进食，或训练前30分钟加餐'
+  };
+  var waterMap = {
+    early: '起床先饮200-300ml温水，训练前15分钟再饮150ml',
+    noon: '训练前2小时饮水400-600ml，训练前15分钟再饮150-250ml',
+    evening: '下午工作时持续补水，训练前15分钟再饮150-250ml'
+  };
+  var theoryMap = {
+    early: pickRandom([
+      { title: '为什么早起训练前必须吃点东西', text: '经过一夜睡眠，肝糖原已下降约50%。空腹训练血糖偏低，力量输出和注意力都会打折，还容易低血糖头晕。哪怕吃半根香蕉也比空着好。' },
+      { title: '起太晚来不及吃怎么办', text: '训练前15分钟喝一杯蜂蜜水或含糖运动饮料，液体吸收比固体快。不要吃需要消化的固体食物，否则训练时血液集中在胃部会难受。' },
+      { title: '为什么早起训练更要补水', text: '睡眠中通过呼吸和出汗已流失约300ml水分。起床后先喝一杯温水（200-300ml），训练前再补150ml，有助于维持血容量和散热。' },
+      { title: '喝咖啡能提升训练表现吗', text: '咖啡因确实能提升力量和专注力，建议训练前45-60分钟摄入3-6mg/kg体重（约1杯美式）。但过量会引起心悸手抖，且长期依赖后效果递减。' },
+      { title: '早起空腹有氧更减脂是真的吗', text: '空腹有氧确实多消耗一点脂肪，但总量差异很小，且可能分解肌肉。对大多数人来说，吃点东西再练效果更好，也更持久。' },
+      { title: '练前需要吃BCAA吗', text: '如果日常蛋白质摄入充足（每公斤体重1.6g以上），BCAA基本没必要。它只是蛋白质的局部片段，一勺蛋白粉已经包含了全部BCAA。' }
+    ], 3),
+    noon: pickRandom([
+      { title: '为什么练前要吃碳水', text: '训练时肌肉优先使用糖原供能。空腹训练糖原不足，力量和耐力都会下降。提前1-2小时补充碳水，确保训练时有充足的能量储备。' },
+      { title: '为什么避免高脂肪和高纤维', text: '脂肪和纤维消化慢，训练时仍在胃里会引起不适、胀气甚至恶心。练前一餐应以碳水为主，搭配少量蛋白质。' },
+      { title: '来不及提前1小时怎么办', text: '训练前30分钟内可以喝一杯含糖运动饮料或吃半根香蕉，快速补充血糖即可，不要吃固体大餐。' },
+      { title: '喝咖啡能提升训练表现吗', text: '咖啡因确实能提升力量和专注力，建议训练前45-60分钟摄入3-6mg/kg体重（约1杯美式）。但过量会引起心悸手抖，且长期依赖后效果递减。' },
+      { title: '空腹有氧更减脂是真的吗', text: '空腹有氧确实多消耗一点脂肪，但总量差异很小，且可能分解肌肉。对大多数人来说，吃点东西再练效果更好，也更持久。' },
+      { title: '碳水循环法适合谁', text: '碳水循环是高碳日训练日、低碳日休息日交替。适合体脂已经较低想进一步刷脂的进阶者，普通训练者保持每天适量碳水即可。' },
+      { title: '练前吃蛋白质有用吗', text: '有研究显示练前30分钟摄入20g蛋白质和练后摄入效果接近，因为氨基酸在训练过程中持续循环。如果练前一餐已含蛋白质就不需要额外补。' },
+      { title: '电解质需要额外补吗', text: '普通1小时训练出汗量不足以造成电解质失衡，正常饮食即可。超过90分钟或高温环境下训练，可以喝含钠钾的运动饮料。' }
+    ], 3),
+    evening: pickRandom([
+      { title: '下班后直接练会低血糖吗', text: '如果午餐在12点，到晚上7点已过7小时，血糖偏低。训练前一定要吃点东西，否则力量和专注力都会下降，还容易头晕。' },
+      { title: '练前吃太饱会怎样', text: '胃里有大量食物时训练，血液在消化系统和肌肉之间争抢，容易腹胀、恶心甚至呕吐。练前1小时吃少量碳水+蛋白质，不要吃大餐。' },
+      { title: '为什么练前避免高脂肪和高纤维', text: '脂肪和纤维消化慢，训练时仍在胃里会引起不适、胀气甚至恶心。练前一餐应以碳水为主，搭配少量蛋白质。' },
+      { title: '练前喝咖啡有用吗', text: '咖啡因45-60分钟起效，如果7点训练，6点喝一杯美式刚好。但晚间训练喝咖啡可能影响睡眠，敏感的人改喝茶或跳过。' },
+      { title: '练前吃蛋白质有用吗', text: '有研究显示练前30分钟摄入20g蛋白质和练后摄入效果接近，因为氨基酸在训练过程中持续循环。如果练前一餐已含蛋白质就不需要额外补。' },
+      { title: '碳水循环法适合谁', text: '碳水循环是高碳日训练日、低碳日休息日交替。适合体脂已经较低想进一步刷脂的进阶者，普通训练者保持每天适量碳水即可。' }
+    ], 3)
+  };
+
+  var combos = generateMealCombos(timeSlot);
+
+  return {
+    timing: timingMap[timeSlot] || timingMap.noon,
+    water: waterMap[timeSlot] || waterMap.noon,
+    theory: theoryMap[timeSlot] || theoryMap.noon,
+    combos: combos
+  };
+}
+
+// ===== 换动作 =====
+var EQUIP_LABELS = { dumbbell: '哑铃', barbell: '杠铃', machine: '器械', bodyweight: '自重', kettlebell: '壶铃', band: '弹力带' };
+
+function openSwapModal(exIdx) {
+  var day = state.plan.weekPlan[state.currentDay];
+  var exTpl = day.exercises[exIdx];
+  var currentEx = findExercise(exTpl.exerciseId);
+  if (!currentEx) return;
+
+  document.getElementById('swapTitle').textContent = '替换：' + currentEx.name;
+  document.getElementById('swapSub').textContent = '同肌群 · 同模式 · 可选替代动作';
+
+  // 查找替代动作：同pattern + 同主肌群
+  var candidates = EXERCISE_LIBRARY.filter(function(e) {
+    return e.id !== exTpl.exerciseId &&
+           e.pattern === currentEx.pattern &&
+           e.primary.join(',') === currentEx.primary.join(',') &&
+           e.minLevel <= state.plan.level;
+  });
+
+  // 降级：同pattern即可
+  if (candidates.length === 0) {
+    candidates = EXERCISE_LIBRARY.filter(function(e) {
+      return e.id !== exTpl.exerciseId && e.pattern === currentEx.pattern && e.minLevel <= state.plan.level;
+    });
+  }
+
+  // 再降级：同主肌群
+  if (candidates.length === 0) {
+    candidates = EXERCISE_LIBRARY.filter(function(e) {
+      return e.id !== exTpl.exerciseId && e.primary.join(',') === currentEx.primary.join(',') && e.minLevel <= state.plan.level;
+    });
+  }
+
+  var listHtml = '';
+
+  // 当前动作
+  listHtml += '<div class="swap-item current">';
+  listHtml += '<div><div class="si-name">' + currentEx.name + '（当前）</div>';
+  listHtml += '<div class="si-info">' + currentEx.primary.join('·') + ' / ' + currentEx.pattern + '</div></div>';
+  listHtml += '<span class="si-equip">' + (EQUIP_LABELS[currentEx.equipment] || currentEx.equipment) + '</span>';
+  listHtml += '</div>';
+
+  candidates.forEach(function(c) {
+    listHtml += '<div class="swap-item" data-swap-to="' + c.id + '" data-ex-idx="' + exIdx + '">';
+    listHtml += '<div><div class="si-name">' + c.name + '</div>';
+    listHtml += '<div class="si-info">' + c.primary.join('·') + (c.secondary.length ? ' / ' + c.secondary.join('·') : '') + '</div></div>';
+    listHtml += '<span class="si-equip">' + (EQUIP_LABELS[c.equipment] || c.equipment) + '</span>';
+    listHtml += '</div>';
+  });
+
+  if (candidates.length === 0) {
+    listHtml += '<div style="font-size:13px;color:var(--text2);text-align:center;padding:20px;">没有找到合适的替代动作</div>';
+  }
+
+  document.getElementById('swapList').innerHTML = listHtml;
+  document.getElementById('swapModal').classList.add('show');
+
+  // 绑定选择
+  document.querySelectorAll('.swap-item[data-swap-to]').forEach(function(item) {
+    item.addEventListener('click', function() {
+      var newId = this.dataset.swapTo;
+      var idx = parseInt(this.dataset.exIdx);
+      swapExercise(idx, newId);
+      document.getElementById('swapModal').classList.remove('show');
+    });
+  });
+}
+
+function swapExercise(exIdx, newExerciseId) {
+  var day = state.plan.weekPlan[state.currentDay];
+  var oldEx = findExercise(day.exercises[exIdx].exerciseId);
+  var newEx = findExercise(newExerciseId);
+  if (!newEx) return;
+
+  // 替换plan中的动作ID
+  day.exercises[exIdx].exerciseId = newExerciseId;
+  day.exercises[exIdx].note = day.exercises[exIdx].note.replace(/：.*/, '：' + newEx.primary.join('·'));
+
+  // 替换currentTrainingData
+  if (state.currentTrainingData && state.currentTrainingData.exercises[exIdx]) {
+    state.currentTrainingData.exercises[exIdx].exerciseId = newExerciseId;
+    state.currentTrainingData.exercises[exIdx].name = newEx.name;
+    state.currentTrainingData.exercises[exIdx].sets = [];
+  }
+
+  saveState();
+  showToast('已替换为：' + newEx.name);
+
+  // 重新渲染训练卡
+  openTraining(state.currentDay);
+}
+
+// 关闭弹窗（点击遮罩）
+document.getElementById('swapModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('show');
+});
+
+// ===== 训练卡 =====
+function openTraining(dayIdx) {
+  state.currentDay = dayIdx;
+  var day = state.plan.weekPlan[dayIdx];
+  document.getElementById('trainingDayTitle').textContent = day.dayName + ' · ' + day.type;
+
+  // 准备训练数据
+  state.currentTrainingData = {
+    dayIndex: dayIdx,
+    date: new Date().toDateString(),
+    type: day.type,
+    exercises: []
+  };
+
+  // 预估训练时间
+  var estMinutes = estimateTrainingTime(day);
+  document.getElementById('trainingDayTitle').textContent = day.dayName + ' · ' + day.type + ' · 预估' + estMinutes + '分钟';
+
+  // 时段选择器 + 练前营养建议
+  var preNutrition = generatePreWorkoutAdvice(state.currentTimeslot);
+  var html = '';
+
+  // 时段选择器
+  html += '<div class="timeslot-selector">';
+  html += '<div class="timeslot-btn' + (state.currentTimeslot === 'early' ? ' active' : '') + '" data-ts="early"><span class="ts-icon">🌅</span><span class="ts-label">早起</span><span class="ts-desc">5-8点</span></div>';
+  html += '<div class="timeslot-btn' + (state.currentTimeslot === 'noon' ? ' active' : '') + '" data-ts="noon"><span class="ts-icon">☀️</span><span class="ts-label">午间/下午</span><span class="ts-desc">10-18点</span></div>';
+  html += '<div class="timeslot-btn' + (state.currentTimeslot === 'evening' ? ' active' : '') + '" data-ts="evening"><span class="ts-icon">🌙</span><span class="ts-label">晚间</span><span class="ts-desc">19点后</span></div>';
+  html += '</div>';
+
+  html += '<div id="preNutritionSection" class="card" style="border-left:3px solid var(--accent);">';
+  html += '<div style="font-size:14px;font-weight:600;margin-bottom:8px;">今日饮食搭配</div>';
+  html += '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">' + preNutrition.timing + ' · ' + preNutrition.water + '</div>';
+  // 套餐列表
+  preNutrition.combos.forEach(function(combo, ci) {
+    html += '<div class="food-option" style="margin-bottom:10px;">';
+    html += '<div class="fo-name">套餐' + (ci + 1) + '：' + combo.pre.name + ' → ' + combo.post.name + '</div>';
+    html += '<div class="fo-why" style="font-size:11px;color:var(--accent);margin-top:2px;margin-bottom:6px;">' + combo.matchReason + '</div>';
+    // 练前
+    html += '<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;">';
+    html += '<span class="fo-tag" style="flex-shrink:0;margin-top:2px;">练前</span>';
+    html += '<div><div class="fo-items">' + formatItems(combo.pre.items) + '</div><div class="fo-why">' + combo.pre.why + '</div></div>';
+    html += '</div>';
+    // 练后
+    html += '<div style="display:flex;gap:6px;align-items:flex-start;">';
+    html += '<span class="fo-tag" style="flex-shrink:0;margin-top:2px;">练后</span>';
+    html += '<div><div class="fo-items">' + formatItems(combo.post.items) + '</div><div class="fo-why">' + combo.post.why + '</div></div>';
+    html += '</div>';
+    html += '</div>';
+  });
+  // 互动问答
+  html += '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">';
+  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">想想为什么？</div>';
+  preNutrition.theory.forEach(function(t, i) {
+    html += '<div class="nutri-q" id="preq-' + i + '">';
+    html += '<div class="nq-toggle" data-preq="' + i + '">' + t.title + ' <span class="nq-arrow">▾</span></div>';
+    html += '<div class="nq-answer">' + t.text + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  // 热身提示
+  html += '<div class="card" style="border-left:3px solid var(--accent);">';
+  html += '<div style="font-size:14px;font-weight:600;margin-bottom:8px;">热身（5-10分钟）</div>';
+  html += '<div style="font-size:12px;color:var(--text2);line-height:1.8;">';
+  html += '空杆/轻重量热身组 1-2组 x 15次';
+  html += '</div>';
+  html += '<div class="cue-toggle" data-warmup="1">展开热身动作说明 ▾</div>';
+  html += '<div class="cue-content" id="warmup-cue">';
+  // 猫牛式
+  var exCatCow = findExercise('EX090');
+  if (exCatCow) {
+    html += '<div class="cue-section"><div class="cue-section-title">猫牛式 8-10次</div>';
+    html += '<ul style="padding-left:16px;">';
+    exCatCow.setup.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    exCatCow.execution.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    html += '</ul></div>';
+  }
+  // 髋屈肌拉伸
+  var exHipFlex = findExercise('EX091');
+  if (exHipFlex) {
+    html += '<div class="cue-section"><div class="cue-section-title">髋屈肌拉伸 30秒/侧</div>';
+    html += '<ul style="padding-left:16px;">';
+    exHipFlex.setup.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    exHipFlex.execution.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    html += '</ul></div>';
+  }
+  // 90/90髋关节拉伸
+  var exHip90 = findExercise('EX093');
+  if (exHip90) {
+    html += '<div class="cue-section"><div class="cue-section-title">90/90髋关节拉伸 30秒/侧</div>';
+    html += '<ul style="padding-left:16px;">';
+    exHip90.setup.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    exHip90.execution.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    html += '</ul></div>';
+  }
+  html += '</div></div>';
+
+  // 重量使用指导
+  html += '<div class="card" style="border-left:3px solid var(--warn);">';
+  html += '<div style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--warn);">使用说明</div>';
+  html += '<div style="font-size:12px;color:var(--text2);line-height:1.8;">';
+  html += '<b style="color:var(--text);">推荐重量</b>是参考值，请根据自身体感调整。核心原则：<br>';
+  html += '- 以<b style="color:var(--text);">目标次数</b>为准，不追求力竭<br>';
+  html += '- 选一个能完成目标次数、最后1-2次感到吃力但<b style="color:var(--text);">动作不变形</b>的重量<br>';
+  html += '- RPE 7 = 保留2-3次余力，RPE 8 = 保留1-2次，RPE 9 = 保留1次<br>';
+  html += '- 轻松完成目标次数上限 -> 下次加重；动作变形 -> 立即降重<br>';
+  html += '- 动作节奏：控制下放，不弹震借力';
+  html += '</div></div>';
+
+  day.exercises.forEach(function(exTpl, exIdx) {
+    var ex = findExercise(exTpl.exerciseId);
+    if (!ex) return;
+
+    var lastLog = state.logs.filter(function(l) {
+      return l.exercises.some(function(e) { return e.exerciseId === exTpl.exerciseId; });
+    }).pop();
+    var lastExLog = lastLog ? lastLog.exercises.find(function(e) { return e.exerciseId === exTpl.exerciseId; }) : null;
+    var rec = recommendWeight(lastExLog, ex, state.plan.level);
+
+    state.currentTrainingData.exercises.push({
+      exerciseId: exTpl.exerciseId,
+      name: ex.name,
+      sets: []
+    });
+
+    html += '<div class="exercise-item" id="ex-' + exIdx + '">';
+    html += '<div class="ex-header">';
+    html += '<div>';
+    html += '<div class="ex-name">' + (exIdx + 1) + '. ' + ex.name + '<button class="ex-swap-btn" data-swap="' + exIdx + '">换动作</button></div>';
+    html += '<div class="ex-muscle">' + ex.primary.join(' · ') + (ex.secondary.length ? ' / ' + ex.secondary.join(' · ') : '') + '</div>';
+    html += '</div>';
+    html += '<div style="text-align:right;">';
+    html += '<div class="param-tag" style="margin-bottom:4px;">推荐 <span class="val">' + rec.weight + 'kg</span></div>';
+    if (exTpl.suggestedIncrease) {
+      html += '<div style="font-size:11px;color:var(--warn);font-weight:600;">↑ 建议加重 ' + exTpl.suggestedIncrease + 'kg</div>';
+    }
+    html += '<div style="font-size:11px;color:var(--accent);">' + rec.message + '</div>';
+    if (exTpl.isDeload) {
+      html += '<div style="font-size:11px;color:var(--warn);">减载周 · 降低重量和组数</div>';
+    }
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div class="ex-params">';
+    html += '<div class="param-tag">组数 <span class="val">' + exTpl.sets + '</span></div>';
+    html += '<div class="param-tag">次数 <span class="val">' + exTpl.reps + '</span></div>';
+    html += '<div class="param-tag">休息 <span class="val">' + exTpl.rest + '秒</span></div>';
+    html += '</div>';
+    html += '<div class="ex-note">' + exTpl.note + '</div>';
+
+    // 预填充：所有组都填入推荐重量和目标次数
+    var defaultReps = rec.targetReps || exTpl.reps.split('-')[0];
+    html += '<table class="sets-table"><thead><tr>';
+    html += '<th>组</th><th>重量(kg)</th><th>次数</th><th>RPE</th><th>✓</th>';
+    html += '</tr></thead><tbody>';
+    for (var s = 0; s < exTpl.sets; s++) {
+      html += '<tr class="set-row">';
+      html += '<td class="set-num">' + (s + 1) + '</td>';
+      html += '<td><input type="number" class="set-input" data-ex="' + exIdx + '" data-set="' + s + '" data-field="weight" value="' + rec.weight + '" placeholder="重量"></td>';
+      html += '<td><input type="number" class="set-input" data-ex="' + exIdx + '" data-set="' + s + '" data-field="reps" value="' + defaultReps + '" placeholder="次数"></td>';
+      html += '<td><input type="number" class="set-input" data-ex="' + exIdx + '" data-set="' + s + '" data-field="rpe" min="1" max="10" value="7" placeholder="7"></td>';
+      html += '<td><input type="checkbox" data-ex="' + exIdx + '" data-set="' + s + '" class="set-done"></td>';
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+
+    // 动作要领（可展开）
+    html += '<div class="cue-toggle" data-ex="' + exIdx + '">展开动作要领 ▾</div>';
+    html += '<div class="cue-content" id="cue-' + exIdx + '">';
+    html += '<div class="cue-section"><div class="cue-section-title">准备姿势</div><ul style="padding-left:16px;">';
+    ex.setup.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    html += '</ul></div>';
+    html += '<div class="cue-section"><div class="cue-section-title">执行要点</div><ul style="padding-left:16px;">';
+    ex.execution.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    html += '</ul></div>';
+    html += '<div class="cue-section"><div class="cue-section-title">常见错误</div><ul class="error-list" style="padding-left:16px;">';
+    ex.errors.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    html += '</ul></div>';
+    if (state.plan.level === 1) {
+      html += '<div class="cue-section"><div class="cue-section-title">动作节奏</div>';
+      html += '下放时控制住重量，不要靠惯性弹起。推起时稳定发力，不用刻意数秒。重点是动作全程保持控制。';
+      html += '</div>';
+    } else {
+      html += '<div class="cue-section"><div class="cue-section-title">动作节奏</div>';
+      html += tempoToText(ex.tempo) + '。节奏数字含义：离心(下放)-底部停顿-向心(推起)-顶部停顿，单位秒。';
+      html += '不必严格数秒，重点是离心阶段保持控制、底部不弹震。';
+      html += '</div>';
+    }
+    if (ex.regression || ex.alternative) {
+      html += '<div class="cue-section"><div class="cue-section-title">替代/退阶</div>';
+      if (ex.regression) html += '退阶：' + ex.regression + '　';
+      if (ex.alternative) html += '替代：' + ex.alternative;
+      html += '</div>';
+    }
+    html += '</div>';
+
+    html += '</div>';
+  });
+
+  // 拉伸提示
+  html += '<div class="card" style="border-left:3px solid var(--accent);">';
+  html += '<div style="font-size:14px;font-weight:600;margin-bottom:8px;">训练后拉伸（5-10分钟）</div>';
+  html += '<div class="cue-toggle" data-stretch="1">展开拉伸动作说明 ▾</div>';
+  html += '<div class="cue-content" id="stretch-cue">';
+  // 胸椎旋转
+  var exThoracic = findExercise('EX092');
+  if (exThoracic) {
+    html += '<div class="cue-section"><div class="cue-section-title">胸椎旋转 8-10次/侧</div>';
+    html += '<ul style="padding-left:16px;">';
+    exThoracic.setup.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    exThoracic.execution.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    html += '</ul></div>';
+  }
+  // 髋屈肌拉伸
+  var exHipFlex2 = findExercise('EX091');
+  if (exHipFlex2) {
+    html += '<div class="cue-section"><div class="cue-section-title">髋屈肌拉伸 30秒/侧</div>';
+    html += '<ul style="padding-left:16px;">';
+    exHipFlex2.setup.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    exHipFlex2.execution.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    html += '</ul></div>';
+  }
+  // 90/90髋关节拉伸
+  var exHip90b = findExercise('EX093');
+  if (exHip90b) {
+    html += '<div class="cue-section"><div class="cue-section-title">90/90髋关节拉伸 30秒/侧</div>';
+    html += '<ul style="padding-left:16px;">';
+    exHip90b.setup.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    exHip90b.execution.forEach(function(c) { html += '<li>' + c + '</li>'; });
+    html += '</ul></div>';
+  }
+  html += '</div></div>';
+
+  document.getElementById('trainingContent').innerHTML = html;
+
+  // 绑定要领展开（动作）
+  document.querySelectorAll('.cue-toggle[data-ex]').forEach(function(t) {
+    t.addEventListener('click', function() {
+      var idx = this.dataset.ex;
+      var content = document.getElementById('cue-' + idx);
+      content.classList.toggle('show');
+      this.textContent = content.classList.contains('show') ? '收起动作要领 ▴' : '展开动作要领 ▾';
+    });
+  });
+
+  // 绑定换动作按钮
+  document.querySelectorAll('.ex-swap-btn[data-swap]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var exIdx = parseInt(this.dataset.swap);
+      openSwapModal(exIdx);
+    });
+  });
+
+  // 绑定热身展开
+  var warmupToggle = document.querySelector('.cue-toggle[data-warmup]');
+  if (warmupToggle) {
+    warmupToggle.addEventListener('click', function() {
+      var content = document.getElementById('warmup-cue');
+      content.classList.toggle('show');
+      this.textContent = content.classList.contains('show') ? '收起热身说明 ▴' : '展开热身动作说明 ▾';
+    });
+  }
+
+  // 绑定拉伸展开
+  var stretchToggle = document.querySelector('.cue-toggle[data-stretch]');
+  if (stretchToggle) {
+    stretchToggle.addEventListener('click', function() {
+      var content = document.getElementById('stretch-cue');
+      content.classList.toggle('show');
+      this.textContent = content.classList.contains('show') ? '收起拉伸说明 ▴' : '展开拉伸动作说明 ▾';
+    });
+  }
+
+  // 绑定输入记录
+  document.querySelectorAll('.set-input, .set-done').forEach(function(inp) {
+    // 先把预填值写入state
+    if (inp.classList.contains('set-input') && inp.value) {
+      var exIdx0 = parseInt(inp.dataset.ex);
+      var setIdx0 = parseInt(inp.dataset.set);
+      var field0 = inp.dataset.field;
+      if (!state.currentTrainingData.exercises[exIdx0].sets[setIdx0]) {
+        state.currentTrainingData.exercises[exIdx0].sets[setIdx0] = {};
+      }
+      state.currentTrainingData.exercises[exIdx0].sets[setIdx0][field0] = Number(inp.value);
+    } else if (inp.classList.contains('set-done') && inp.checked) {
+      var exIdx1 = parseInt(inp.dataset.ex);
+      var setIdx1 = parseInt(inp.dataset.set);
+      if (!state.currentTrainingData.exercises[exIdx1].sets[setIdx1]) {
+        state.currentTrainingData.exercises[exIdx1].sets[setIdx1] = {};
+      }
+      state.currentTrainingData.exercises[exIdx1].sets[setIdx1].done = true;
+    }
+    inp.addEventListener('change', function() {
+      var exIdx = parseInt(this.dataset.ex);
+      var setIdx = parseInt(this.dataset.set);
+      var field = this.dataset.field;
+      if (!state.currentTrainingData.exercises[exIdx].sets[setIdx]) {
+        state.currentTrainingData.exercises[exIdx].sets[setIdx] = {};
+      }
+      if (field) {
+        state.currentTrainingData.exercises[exIdx].sets[setIdx][field] = this.value ? Number(this.value) : null;
+      } else {
+        state.currentTrainingData.exercises[exIdx].sets[setIdx].done = this.checked;
+        // 勾选完成 → 启动组间休息计时器
+        if (!field && this.checked) {
+          var day = state.plan.weekPlan[state.currentDay];
+          var exTpl = day.exercises[exIdx];
+          var ex = findExercise(exTpl.exerciseId);
+          var totalSets = exTpl.sets;
+          // 如果是最后一个动作的最后一组，不启动休息
+          var isLastExercise = (exIdx === day.exercises.length - 1);
+          var isLastSet = (setIdx === totalSets - 1);
+          if (!(isLastExercise && isLastSet)) {
+            var restSec = exTpl.rest;
+            // 如果是某个动作的最后一组但后面还有动作，也启动休息
+            var label = '组间休息 · ' + ex.name;
+            if (isLastSet && !isLastExercise) {
+              label = '动作间休息 · ' + ex.name;
+            }
+            document.getElementById('rtLabel').textContent = label;
+            startRestTimer(restSec);
+          }
+        } else if (!field && !this.checked) {
+          // 取消勾选 → 关闭计时器
+          stopRestTimer();
+        }
+      }
+    });
+  });
+
+  // 绑定练前营养问答
+  document.querySelectorAll('.nq-toggle[data-preq]').forEach(function(t) {
+    t.addEventListener('click', function() {
+      this.parentElement.classList.toggle('open');
+    });
+  });
+
+  // 绑定时段选择器
+  document.querySelectorAll('.timeslot-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      state.currentTimeslot = this.dataset.ts;
+      // 重新渲染练前营养区域
+      var preNut = generatePreWorkoutAdvice(state.currentTimeslot);
+      var preHtml = '';
+      preHtml += '<div style="font-size:14px;font-weight:600;margin-bottom:8px;">今日饮食搭配</div>';
+      preHtml += '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">' + preNut.timing + ' · ' + preNut.water + '</div>';
+      preNut.combos.forEach(function(combo, ci) {
+        preHtml += '<div class="food-option" style="margin-bottom:10px;">';
+        preHtml += '<div class="fo-name">套餐' + (ci + 1) + '：' + combo.pre.name + ' → ' + combo.post.name + '</div>';
+        preHtml += '<div class="fo-why" style="font-size:11px;color:var(--accent);margin-top:2px;margin-bottom:6px;">' + combo.matchReason + '</div>';
+        preHtml += '<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;">';
+        preHtml += '<span class="fo-tag" style="flex-shrink:0;margin-top:2px;">练前</span>';
+        preHtml += '<div><div class="fo-items">' + formatItems(combo.pre.items) + '</div><div class="fo-why">' + combo.pre.why + '</div></div>';
+        preHtml += '</div>';
+        preHtml += '<div style="display:flex;gap:6px;align-items:flex-start;">';
+        preHtml += '<span class="fo-tag" style="flex-shrink:0;margin-top:2px;">练后</span>';
+        preHtml += '<div><div class="fo-items">' + formatItems(combo.post.items) + '</div><div class="fo-why">' + combo.post.why + '</div></div>';
+        preHtml += '</div>';
+        preHtml += '</div>';
+      });
+      preHtml += '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">';
+      preHtml += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">想想为什么？</div>';
+      preNut.theory.forEach(function(t, i) {
+        preHtml += '<div class="nutri-q" id="preq-' + i + '">';
+        preHtml += '<div class="nq-toggle" data-preq="' + i + '">' + t.title + ' <span class="nq-arrow">▾</span></div>';
+        preHtml += '<div class="nq-answer">' + t.text + '</div>';
+        preHtml += '</div>';
+      });
+      preHtml += '</div>';
+      var section = document.getElementById('preNutritionSection');
+      section.innerHTML = preHtml;
+      // 更新时段按钮active状态
+      document.querySelectorAll('.timeslot-btn').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      // 重新绑定问答点击
+      document.querySelectorAll('.nq-toggle[data-preq]').forEach(function(t) {
+        t.addEventListener('click', function() {
+          this.parentElement.classList.toggle('open');
+        });
+      });
+    });
+  });
+
+  showPage('training');
+}
+
+// ===== 完成训练 -> 总结 =====
+function finishTraining() {
+  var log = state.currentTrainingData;
+  log.completedAt = new Date().toISOString();
+  log.timeSlot = state.currentTimeslot;
+  log.cycleWeek = state.plan.cycleWeek || 1;
+  state.logs.push(log);
+
+  // 记录本周已完成的天
+  if (!state.plan.completedDays) state.plan.completedDays = [];
+  if (state.plan.completedDays.indexOf(state.currentDay) < 0) {
+    state.plan.completedDays.push(state.currentDay);
+  }
+
+  saveState();
+
+  // 检查是否本周全部完成 → 自动滚动到下一周
+  checkWeekCompletion();
+
+  // 统计
+  var totalSets = 0, totalReps = 0, totalVolume = 0;
+  var completedExercises = 0;
+  log.exercises.forEach(function(ex) {
+    var hasData = false;
+    ex.sets.forEach(function(s) {
+      if (s.weight && s.reps) {
+        totalSets++;
+        totalReps += s.reps;
+        totalVolume += s.weight * s.reps;
+        hasData = true;
+      }
+    });
+    if (hasData) completedExercises++;
+  });
+
+  // 鼓励语
+  var encouragement = generateEncouragement(log, completedExercises);
+
+  // 营养建议（按时段）
+  var nutrition = generateNutritionAdvice({ type: log.type }, state.profile.bodyweight, state.currentTimeslot);
+
+  // 时段标签
+  var tsLabels = { early: '早起训练', noon: '午间训练', evening: '晚间训练' };
+  var tsLabel = tsLabels[state.currentTimeslot] || '';
+
+  var html = '';
+
+  // 鼓励语
+  html += '<div class="encourage-box">';
+  html += '<div class="enc-text">' + encouragement + '</div>';
+  html += '</div>';
+
+  // 统计
+  html += '<div class="summary-stats">';
+  html += '<div class="summary-stat"><div class="stat-num">' + completedExercises + '</div><div class="stat-label">完成动作</div></div>';
+  html += '<div class="summary-stat"><div class="stat-num">' + totalSets + '</div><div class="stat-label">总组数</div></div>';
+  html += '<div class="summary-stat"><div class="stat-num">' + totalVolume + '</div><div class="stat-label">总容量(kg)</div></div>';
+  html += '</div>';
+
+  // 营养建议
+  html += '<div class="card">';
+  html += '<div class="card-title">练后营养建议 · ' + tsLabel + '</div>';
+  html += '<div class="nutrition-card">';
+  html += '<div class="macro">';
+  html += '<div class="macro-item protein"><div class="macro-num">' + nutrition.protein + '</div><div class="macro-unit">g 蛋白质</div></div>';
+  html += '<div class="macro-item carb"><div class="macro-num">' + nutrition.carb + '</div><div class="macro-unit">g 碳水</div></div>';
+  html += '<div class="macro-item"><div class="macro-num">' + nutrition.water + '</div><div class="macro-unit">补水量</div></div>';
+  html += '</div>';
+  html += '<div style="font-size:12px;color:var(--text2);margin-bottom:12px;">' + nutrition.timing + ' · 每日蛋白目标：' + nutrition.dailyProtein + '</div>';
+  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">练后补充方案</div>';
+  // 从匹配套餐中只展示练后部分
+  nutrition.combos.forEach(function(combo, ci) {
+    html += '<div class="food-option" style="margin-bottom:8px;">';
+    html += '<div class="fo-name">' + combo.post.name + ' <span class="fo-tag">' + combo.post.tag + '</span></div>';
+    html += '<div class="fo-items">' + formatItems(combo.post.items) + '</div>';
+    html += '<div class="fo-why">' + combo.post.why + '</div>';
+    html += '<div class="fo-why" style="color:var(--accent);font-size:11px;margin-top:4px;">搭配练前：' + combo.pre.name + '</div>';
+    html += '</div>';
+  });
+  // 理论说明
+  html += '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">';
+  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">想想为什么？</div>';
+  nutrition.theory.forEach(function(t, i) {
+    html += '<div class="nutri-q" id="postq-' + i + '">';
+    html += '<div class="nq-toggle" data-postq="' + i + '">' + t.title + ' <span class="nq-arrow">▾</span></div>';
+    html += '<div class="nq-answer">' + t.text + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // 下次训练预告
+  var nextDayIdx = -1;
+  for (var i = state.currentDay + 1; i < 7; i++) {
+    if (!state.plan.weekPlan[i].isRest) { nextDayIdx = i; break; }
+  }
+  if (nextDayIdx === -1) {
+    for (var i = 0; i < state.currentDay; i++) {
+      if (!state.plan.weekPlan[i].isRest) { nextDayIdx = i; break; }
+    }
+  }
+  if (nextDayIdx >= 0) {
+    var nextDay = state.plan.weekPlan[nextDayIdx];
+    html += '<div class="card" style="text-align:center;">';
+    html += '<div style="font-size:13px;color:var(--text2);">下次训练</div>';
+    html += '<div style="font-size:18px;font-weight:700;margin-top:6px;">' + nextDay.dayName + ' · ' + nextDay.type + '</div>';
+    html += '<div style="font-size:12px;color:var(--text2);margin-top:4px;">' + nextDay.exercises.length + '个动作 · 预计' + state.profile.sessionDuration + '分钟</div>';
+    html += '</div>';
+  }
+
+  document.getElementById('summaryContent').innerHTML = html;
+
+  // 绑定练后营养问答
+  document.querySelectorAll('.nq-toggle[data-postq]').forEach(function(t) {
+    t.addEventListener('click', function() {
+      this.parentElement.classList.toggle('open');
+    });
+  });
+
+  showPage('summary');
+}
+
+function generateEncouragement(log, completedExercises) {
+  var totalExercises = log.exercises.length;
+  var completionRate = completedExercises / totalExercises;
+
+  // 检查是否有PR突破
+  var hasPR = false;
+  log.exercises.forEach(function(ex) {
+    var prevLogs = state.logs.filter(function(l) {
+      return l.exercises.some(function(e) { return e.exerciseId === ex.exerciseId; });
+    });
+    if (prevLogs.length > 0) {
+      var prevLog = prevLogs[prevLogs.length - 1];
+      var prevEx = prevLog.exercises.find(function(e) { return e.exerciseId === ex.exerciseId; });
+      if (prevEx && ex.sets[0] && prevEx.sets[0]) {
+        if (ex.sets[0].weight > prevEx.sets[0].weight) hasPR = true;
+      }
+    }
+  });
+
+  // 检查连续训练
+  var recentLogs = state.logs.slice(-3);
+  var consistent = recentLogs.length >= 3;
+
+  if (hasPR) {
+    return '又有动作破PR了！重量在涨说明进步看得见。保持这个节奏，但别贪加重量，动作质量第一。';
+  } else if (completionRate >= 1) {
+    if (consistent) {
+      return '今天的训练全部按计划完成，连续训练状态不错。坚持才是最难的，你已经做到了。';
+    }
+    return '今天的训练全部按计划完成！每次完整完成训练卡就是一步积累，继续保持。';
+  } else if (completionRate >= 0.6) {
+    return '核心动作都完成了，后面的没做完没关系。状态有起伏很正常，下次把状态留够。';
+  } else {
+    return '能来练就比不来强。今天先找找感觉，不用赶进度，下次继续。';
+  }
+}
+
+// ===== 进度页 =====
+function renderProgress() {
+  if (state.logs.length === 0) {
+    document.getElementById('progressContent').innerHTML = '<div class="empty-state"><div class="icon">📊</div><div class="title">还没有训练记录</div><div class="desc">完成第一次训练后这里会显示进度</div></div>';
+    return;
+  }
+
+  var html = '';
+
+  // 总览统计
+  var totalSessions = state.logs.length;
+  var totalVolume = 0, totalSets = 0;
+  state.logs.forEach(function(log) {
+    log.exercises.forEach(function(ex) {
+      ex.sets.forEach(function(s) {
+        if (s.weight && s.reps) {
+          totalVolume += s.weight * s.reps;
+          totalSets++;
+        }
+      });
+    });
+  });
+
+  // 出勤率（最近4周）
+  var fourWeeksAgo = new Date();
+  fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+  var recentSessions = state.logs.filter(function(l) {
+    return new Date(l.completedAt) >= fourWeeksAgo;
+  });
+  var expectedSessions = state.plan ? state.plan.daysPerWeek * 4 : 12;
+  var attendanceRate = Math.min(100, Math.round(recentSessions.length / expectedSessions * 100));
+
+  html += '<div class="summary-stats">';
+  html += '<div class="summary-stat"><div class="stat-num">' + totalSessions + '</div><div class="stat-label">总训练次数</div></div>';
+  html += '<div class="summary-stat"><div class="stat-num">' + totalSets + '</div><div class="stat-label">总组数</div></div>';
+  html += '<div class="summary-stat"><div class="stat-num">' + Math.round(totalVolume) + '</div><div class="stat-label">总容量(kg)</div></div>';
+  html += '</div>';
+
+  // 出勤率
+  html += '<div class="card">';
+  html += '<div class="card-title">出勤率（最近4周）</div>';
+  html += '<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:' + attendanceRate + '%;">' + attendanceRate + '%</div></div>';
+  html += '<div style="font-size:12px;color:var(--text2);">已完成 ' + recentSessions.length + ' / ' + expectedSessions + ' 次训练</div>';
+  html += '</div>';
+
+  // --- 各动作进度（简洁列表） ---
+  html += '<div class="card"><div class="card-title">动作进度</div>';
+
+  var exerciseProgress = {};
+  state.logs.forEach(function(log) {
+    log.exercises.forEach(function(ex) {
+      if (!ex.sets || ex.sets.length === 0) return;
+      if (!exerciseProgress[ex.exerciseId]) {
+        exerciseProgress[ex.exerciseId] = { name: ex.name, history: [] };
+      }
+      var maxWeight = 0, maxReps = 0;
+      ex.sets.forEach(function(s) {
+        if (s.weight && s.weight > maxWeight) maxWeight = s.weight;
+        if (s.reps && s.reps > maxReps) maxReps = s.reps;
+      });
+      exerciseProgress[ex.exerciseId].history.push({
+        date: log.date,
+        weight: maxWeight,
+        reps: maxReps,
+        est1RM: maxWeight && maxReps ? estimate1RM(maxWeight, maxReps) : 0
+      });
+    });
+  });
+
+  Object.keys(exerciseProgress).forEach(function(exId) {
+    var prog = exerciseProgress[exId];
+    if (prog.history.length < 1) return;
+    var first = prog.history[0];
+    var last = prog.history[prog.history.length - 1];
+    var weightChange = last.weight - first.weight;
+    var changeStr = weightChange > 0 ? '+' + weightChange + 'kg' : weightChange < 0 ? weightChange + 'kg' : '持平';
+    var changeColor = weightChange > 0 ? 'var(--accent)' : 'var(--text2)';
+
+    // 动作名 + 变化
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">';
+    html += '<div><div style="font-size:14px;font-weight:600;">' + prog.name + '</div>';
+    html += '<div style="font-size:11px;color:var(--text2);margin-top:2px;">最新: ' + last.weight + 'kg × ' + last.reps + '次 · 共' + prog.history.length + '次记录</div></div>';
+    html += '<div style="text-align:right;"><div style="font-size:16px;font-weight:700;color:' + changeColor + ';">' + changeStr + '</div>';
+    html += '<div style="font-size:11px;color:var(--text3);">估算1RM: ' + last.est1RM + 'kg</div></div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // 最近训练记录
+  html += '<div class="card"><div class="card-title">最近训练</div>';
+  state.logs.slice(-5).reverse().forEach(function(log) {
+    var totalVol = 0;
+    log.exercises.forEach(function(ex) {
+      ex.sets.forEach(function(s) { if (s.weight && s.reps) totalVol += s.weight * s.reps; });
+    });
+    var date = new Date(log.completedAt);
+    var dateStr = (date.getMonth() + 1) + '/' + date.getDate() + ' ' + String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+    html += '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">';
+    html += '<div><div style="font-size:13px;font-weight:600;">' + log.type + '</div><div style="font-size:11px;color:var(--text2);">' + dateStr + '</div></div>';
+    html += '<div style="text-align:right;font-size:13px;">' + Math.round(totalVol) + ' kg</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  document.getElementById('progressContent').innerHTML = html;
+}
+
+// ===== 身体维度记录页 =====
+function renderMeasure() {
+  var ms = state.measurements || [];
+  ms.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+
+  var html = '';
+
+  // --- 测量建议 ---
+  var reminder = getMeasureReminder();
+  var tips = getMeasureTips();
+  html += '<div class="card" style="border-left:3px solid var(--accent);">';
+  html += '<div style="font-size:14px;font-weight:600;margin-bottom:8px;">📏 测量建议</div>';
+  if (reminder.daysSince !== null) {
+    var badgeColor = reminder.needed ? 'var(--danger)' : 'var(--accent)';
+    html += '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">' +
+      '<span style="color:' + badgeColor + ';font-weight:600;">' + reminder.reason + '</span></div>';
+  }
+  html += '<div style="font-size:12px;color:var(--text2);line-height:1.8;">';
+  tips.forEach(function(tip) {
+    html += '<div style="margin-bottom:3px;">• ' + tip + '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  // --- 输入表单 ---
+  html += '<div class="card">';
+  html += '<div class="card-title">记录身体维度</div>';
+
+  // 日期
+  var todayStr = new Date().toISOString().slice(0, 10);
+  html += '<div class="measure-input-group"><label>日期</label><input type="date" id="msDate" value="' + todayStr + '"></div>';
+
+  // 体重 & 体脂率
+  html += '<div class="measure-input-group"><label>体重</label><input type="number" id="msBodyweight" placeholder="如: 58.5" step="0.1"><span class="unit">kg</span></div>';
+  html += '<div class="measure-input-group"><label>体脂率</label><input type="number" id="msBodyfat" placeholder="如: 24" step="0.1"><span class="unit">%</span></div>';
+
+  html += '<div class="measure-section-title">三围</div>';
+  html += '<div class="measure-input-group"><label>胸围</label><input type="number" id="msChest" placeholder="如: 88" step="0.5"><span class="unit">cm</span></div>';
+  html += '<div class="measure-input-group"><label>腰围</label><input type="number" id="msWaist" placeholder="如: 68" step="0.5"><span class="unit">cm</span></div>';
+  html += '<div class="measure-input-group"><label>臀围</label><input type="number" id="msHip" placeholder="如: 92" step="0.5"><span class="unit">cm</span></div>';
+
+  html += '<div class="measure-section-title">四肢围度（左 / 右）</div>';
+  html += '<div class="measure-input-group"><label>上臂</label><input type="number" id="msArmL" placeholder="左" step="0.5"><input type="number" id="msArmR" placeholder="右" step="0.5"><span class="unit">cm</span></div>';
+  html += '<div class="measure-input-group"><label>大腿</label><input type="number" id="msThighL" placeholder="左" step="0.5"><input type="number" id="msThighR" placeholder="右" step="0.5"><span class="unit">cm</span></div>';
+  html += '<div class="measure-input-group"><label>小腿</label><input type="number" id="msCalfL" placeholder="左" step="0.5"><input type="number" id="msCalfR" placeholder="右" step="0.5"><span class="unit">cm</span></div>';
+
+  // 照片上传
+  html += '<div class="measure-section-title">体态照片（可选）</div>';
+  html += '<label class="photo-input-label" for="msPhotoInput">📷 添加照片（正面/侧面/背面）</label>';
+  html += '<input type="file" id="msPhotoInput" accept="image/*" multiple style="display:none;">';
+  html += '<div class="photo-preview" id="msPhotoPreview"></div>';
+
+  // 保存按钮
+  html += '<button class="btn-primary" id="saveMeasureBtn" style="width:100%;margin-top:14px;">保存记录</button>';
+  html += '</div>';
+
+  // --- 最新数据概览 ---
+  if (ms.length > 0) {
+    var latest = ms[ms.length - 1];
+    var prev = ms.length > 1 ? ms[ms.length - 2] : null;
+
+    html += '<div class="card">';
+    html += '<div class="card-title">最新数据 <span style="font-size:12px;font-weight:400;color:var(--text3);">(' + latest.date + ')</span></div>';
+    html += '<div class="measure-grid">';
+
+    var fields = [
+      { key: 'bodyweight', label: '体重', unit: 'kg' },
+      { key: 'bodyfat', label: '体脂率', unit: '%' },
+      { key: 'chest', label: '胸围', unit: 'cm' },
+      { key: 'waist', label: '腰围', unit: 'cm' },
+      { key: 'hip', label: '臀围', unit: 'cm' },
+      { key: 'armL', label: '左上臂', unit: 'cm' },
+      { key: 'armR', label: '右上臂', unit: 'cm' },
+      { key: 'thighL', label: '左大腿', unit: 'cm' },
+      { key: 'thighR', label: '右大腿', unit: 'cm' },
+      { key: 'calfL', label: '左小腿', unit: 'cm' },
+      { key: 'calfR', label: '右小腿', unit: 'cm' }
+    ];
+
+    fields.forEach(function(f) {
+      var val = latest[f.key];
+      var changeStr = '';
+      if (prev && prev[f.key] && val) {
+        var diff = (val - prev[f.key]);
+        if (Math.abs(diff) >= 0.1) {
+          var arrow = diff > 0 ? '↑' : '↓';
+          var cls = diff > 0 ? 'up' : 'down';
+          changeStr = '<div class="mg-change ' + cls + '">' + arrow + Math.abs(diff).toFixed(1) + '</div>';
+        }
+      }
+      html += '<div class="mg-item">';
+      html += '<div class="mg-label">' + f.label + '</div>';
+      html += '<div class="mg-value">' + (val ? val : '—') + '</div>';
+      html += changeStr;
+      html += '</div>';
+    });
+
+    html += '</div>';
+    html += '</div>';
+  }
+
+  // --- 历史时间线 ---
+  if (ms.length > 0) {
+    html += '<div class="card">';
+    html += '<div class="card-title">历史记录</div>';
+
+    // 倒序展示
+    for (var i = ms.length - 1; i >= 0; i--) {
+      var m = ms[i];
+      html += '<div class="measure-timeline-item">';
+      var cycleLabel = (m.cycleCount !== undefined) ? ' · 周期' + (m.cycleCount + 1) + ' 第' + (m.cycleWeek || 1) + '周' : '';
+      html += '<div class="mt-date">' + m.date + cycleLabel + '</div>';
+      html += '<div class="mt-data">';
+
+      var cells = [
+        { label: '体重', val: m.bodyweight, unit: 'kg' },
+        { label: '体脂', val: m.bodyfat, unit: '%' },
+        { label: '胸围', val: m.chest, unit: 'cm' },
+        { label: '腰围', val: m.waist, unit: 'cm' },
+        { label: '臀围', val: m.hip, unit: 'cm' },
+        { label: '上臂', val: m.armL && m.armR ? m.armL + '/' + m.armR : (m.armL || m.armR || ''), unit: 'cm' }
+      ];
+
+      cells.forEach(function(c) {
+        html += '<div class="mt-cell"><div class="mtc-label">' + c.label + '</div><div class="mtc-val">' + (c.val ? c.val + c.unit : '—') + '</div></div>';
+      });
+
+      html += '</div>';
+
+      // 照片
+      if (m.photos && m.photos.length > 0) {
+        html += '<div class="measure-photo-grid">';
+        m.photos.forEach(function(p, idx) {
+          html += '<div class="mp-item"><img src="' + p.data + '" alt="体态照片"><div class="mp-label">' + (p.label || ('照片' + (idx + 1))) + '</div></div>';
+        });
+        html += '</div>';
+      }
+
+      // 删除按钮
+      html += '<div style="text-align:right;margin-top:6px;"><button class="text-btn" onclick="deleteMeasure(' + i + ')" style="font-size:11px;color:var(--danger);background:none;border:none;cursor:pointer;">删除</button></div>';
+
+      html += '</div>';
+    }
+
+    html += '</div>';
+  }
+
+  document.getElementById('measureContent').innerHTML = html;
+
+  // --- 绑定事件 ---
+  bindMeasureEvents();
+}
+
+// 照片临时存储
+var measurePhotos = [];
+
+function bindMeasureEvents() {
+  var photoInput = document.getElementById('msPhotoInput');
+  var photoPreview = document.getElementById('msPhotoPreview');
+
+  photoInput.addEventListener('change', function(e) {
+    var files = Array.prototype.slice.call(e.target.files);
+    files.forEach(function(file) {
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('图片 "' + file.name + '" 超过5MB，已跳过');
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        compressPhoto(ev.target.result, file.name, function(compressed) {
+          measurePhotos.push({ data: compressed, label: '照片' + (measurePhotos.length + 1) });
+          renderPhotoPreview();
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    photoInput.value = '';
+  });
+
+  document.getElementById('saveMeasureBtn').addEventListener('click', saveMeasure);
+}
+
+function compressPhoto(dataUrl, fileName, callback) {
+  var img = new Image();
+  img.onload = function() {
+    var maxW = 600, maxH = 800;
+    var w = img.width, h = img.height;
+    if (w > maxW) { h = h * maxW / w; w = maxW; }
+    if (h > maxH) { w = w * maxH / h; h = maxH; }
+    var canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    callback(canvas.toDataURL('image/jpeg', 0.6));
+  };
+  img.onerror = function() { callback(dataUrl); };
+  img.src = dataUrl;
+}
+
+function renderPhotoPreview() {
+  var el = document.getElementById('msPhotoPreview');
+  if (!el) return;
+  var html = '';
+  measurePhotos.forEach(function(p, idx) {
+    html += '<div class="pp-item"><img src="' + p.data + '"><div class="pp-remove" onclick="removeMeasurePhoto(' + idx + ')">✕</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+function removeMeasurePhoto(idx) {
+  measurePhotos.splice(idx, 1);
+  renderPhotoPreview();
+}
+
+function saveMeasure() {
+  var rec = {
+    date: document.getElementById('msDate').value || new Date().toISOString().slice(0, 10),
+    bodyweight: parseFloat(document.getElementById('msBodyweight').value) || null,
+    bodyfat: parseFloat(document.getElementById('msBodyfat').value) || null,
+    chest: parseFloat(document.getElementById('msChest').value) || null,
+    waist: parseFloat(document.getElementById('msWaist').value) || null,
+    hip: parseFloat(document.getElementById('msHip').value) || null,
+    armL: parseFloat(document.getElementById('msArmL').value) || null,
+    armR: parseFloat(document.getElementById('msArmR').value) || null,
+    thighL: parseFloat(document.getElementById('msThighL').value) || null,
+    thighR: parseFloat(document.getElementById('msThighR').value) || null,
+    calfL: parseFloat(document.getElementById('msCalfL').value) || null,
+    calfR: parseFloat(document.getElementById('msCalfR').value) || null,
+    photos: measurePhotos.slice(),
+    cycleCount: state.plan ? (state.plan.cycleCount || 0) : 0,
+    cycleWeek: state.plan ? (state.plan.cycleWeek || 1) : 1
+  };
+
+  // 至少要有一项数据
+  var hasData = rec.bodyweight || rec.bodyfat || rec.chest || rec.waist || rec.hip || rec.armL || rec.armR || rec.thighL || rec.thighR || rec.calfL || rec.calfR || rec.photos.length > 0;
+  if (!hasData) {
+    showToast('请至少填写一项数据');
+    return;
+  }
+
+  state.measurements = state.measurements || [];
+  state.measurements.push(rec);
+  saveState();
+  measurePhotos = [];
+  showToast('身体维度记录已保存');
+  renderMeasure();
+}
+
+// ===== 维度测量节奏判断 =====
+function getMeasureReminder() {
+  var ms = state.measurements || [];
+  if (ms.length === 0) {
+    return { needed: true, daysSince: null, reason: '还没有维度记录，建议尽快完成首次测量，建立基线数据' };
+  }
+  ms.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+  var last = ms[ms.length - 1];
+  var lastDate = new Date(last.date);
+  var now = new Date();
+  var diffDays = Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  // 增肌期：建议每2周（14天）测一次
+  var interval = 14;
+  if (diffDays >= interval) {
+    return { needed: true, daysSince: diffDays, reason: '距上次测量已' + diffDays + '天，建议尽快记录新数据以追踪变化趋势' };
+  }
+  return { needed: false, daysSince: diffDays, reason: '距上次测量' + diffDays + '天，下次建议在' + (interval - diffDays) + '天后' };
+}
+
+function getMeasureTips() {
+  return [
+    '测量时间：早晨起床排便后、进食前，数据最稳定',
+    '测量位置一致：腰围取肚脐水平，臂围取肱二头肌最高点，腿围取大腿根部下1/3处',
+    '体脂率：家用体脂秤误差较大（±3-5%），关注趋势变化而非绝对值',
+    '拍照条件：同一光线、同一角度、相近着装，方便对比',
+    '增肌期体重每月增长0.5-1kg为宜，过快多为脂肪',
+    '围度增长比体重更重要——臂围+1cm比体重+1kg更说明增肌效果'
+  ];
+}
+
+function deleteMeasure(idx) {
+  if (!confirm('确定删除这条记录？')) return;
+  state.measurements.splice(idx, 1);
+  saveState();
+  showToast('记录已删除');
+  renderMeasure();
+}
+
+// ===== 设置页 =====
+function renderSettings() {
+  if (!state.profile) {
+    document.getElementById('settingsInfo').innerHTML = '<div style="color:var(--text2);">尚未填写问卷</div>';
+    return;
+  }
+  var p = state.profile;
+  var level = state.plan ? state.plan.level : '?';
+  var html = '<div style="font-size:13px;line-height:2;">';
+  html += '性别：<span style="color:var(--text);">' + (p.gender === 'female' ? '女' : '男') + '</span><br>';
+  html += '年龄：<span style="color:var(--text);">' + p.age + '岁</span><br>';
+  html += '身高：<span style="color:var(--text);">' + p.height + 'cm</span> · 体重：<span style="color:var(--text);">' + p.bodyweight + 'kg</span><br>';
+  html += 'BMI：<span style="color:var(--text);">' + (p.bodyweight / Math.pow(p.height / 100, 2)).toFixed(1) + '</span><br>';
+  html += '训练等级：<span style="color:var(--accent);font-weight:600;">Level ' + level + '</span><br>';
+  html += '训练目标：<span style="color:var(--text);">' + p.goal + '</span><br>';
+  html += '每周训练：<span style="color:var(--text);">' + p.daysPerWeek + '天</span> · 每次<span style="color:var(--text);">' + p.sessionDuration + '分钟</span><br>';
+  html += '训练场所：<span style="color:var(--text);">' + ({ commercial: '商业健身房', studio: '小型工作室', home: '居家' })[p.venue] + '</span>';
+  html += '</div>';
+  document.getElementById('settingsInfo').innerHTML = html;
+}
+
+// ===== 事件绑定 =====
+document.getElementById('navDashboard').addEventListener('click', function() { renderDashboard(); showPage('dashboard'); });
+document.getElementById('navProgress').addEventListener('click', function() { renderProgress(); showPage('progress'); });
+document.getElementById('navMeasure').addEventListener('click', function() { renderMeasure(); showPage('measure'); });
+document.getElementById('navSettings').addEventListener('click', function() { renderSettings(); showPage('settings'); });
+document.getElementById('backToDashboard').addEventListener('click', function() { stopRestTimer(); renderDashboard(); showPage('dashboard'); });
+document.getElementById('backFromSummary').addEventListener('click', function() { renderDashboard(); showPage('dashboard'); });
+document.getElementById('finishTrainingBtn').addEventListener('click', function() { stopRestTimer(); finishTraining(); });
+document.getElementById('cycleOverviewBtn').addEventListener('click', function() { renderCycleOverview(); showPage('cycle'); });
+document.getElementById('backFromCycle').addEventListener('click', function() { showPage('dashboard'); });
+document.getElementById('yearRoadmapBtn').addEventListener('click', function() { renderYearRoadmap(); showPage('year'); });
+document.getElementById('backFromYear').addEventListener('click', function() { renderCycleOverview(); showPage('cycle'); });
+document.getElementById('regenerateBtn').addEventListener('click', function() {
+  if (confirm('确定要重新生成训练计划吗？将重置周期为第1周，本周进度清空。')) {
+    state.plan = generatePlan(state.profile);
+    saveState();
+    renderDashboard();
+    showToast('训练计划已重新生成');
+  }
+});
+document.getElementById('clearDataBtn').addEventListener('click', function() {
+  if (confirm('确定清除所有数据？此操作不可恢复。')) {
+    localStorage.removeItem('fitnessBuddy');
+    state = { profile: null, plan: null, logs: [], measurements: [], currentDay: null, currentTrainingData: null, quizStep: 0 };
+    showPage('quiz');
+    renderQuiz();
+  }
+});
+
+// ===== 组间休息计时器按钮绑定 =====
+document.getElementById('rtSkip').addEventListener('click', stopRestTimer);
+document.getElementById('rtPause').addEventListener('click', pauseRestTimer);
+document.getElementById('rtAdd30').addEventListener('click', function() { addRestTime(30); });
+
+// ===== 初始化 =====
+loadState();
+if (state.profile && state.plan) {
+  renderDashboard();
+  showPage('dashboard');
+} else {
+  renderQuiz();
+  showPage('quiz');
+}
+</script>
+
+<!-- AIGC: {"Label":"value1","ContentProducer":"001191110000802100433B11010001191110000802100433B11010","ProduceID":"448015cc-5526-4119-8d76-4fbf2ed435fd","ReservedCode1":"72dafc97cd38b92e5f3d5cdfd0dfbbe6","ContentPropagator":"001191110000802100433B11010001191110000802100433B11010","PropagateID":"7b273b0b-0b65-4369-8e0f-a4c275da0af4","ReservedCode2":"2734827274df537123a472bf4de01eb5"} -->
+</body>
+</html>
